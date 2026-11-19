@@ -296,9 +296,12 @@ def assemble():
 
 
 if __name__ == "__main__":
-    os.makedirs(os.path.join(CACHE, "data"), exist_ok=True)
-    meta = build_books()
-    if not meta:
-        sys.exit("no books downloaded")
-    build_dict(book_vocab())
-    assemble()
+    step = sys.argv[1] if len(sys.argv) > 1 else "all"
+    if step in ("data", "all"):
+        os.makedirs(os.path.join(CACHE, "data"), exist_ok=True)
+        meta = build_books()
+        if not meta:
+            sys.exit("no books downloaded")
+        build_dict(book_vocab())
+    if step in ("site", "all"):
+        assemble()

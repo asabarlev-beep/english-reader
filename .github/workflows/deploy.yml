@@ -27,9 +27,22 @@ jobs:
         uses: actions/cache@v4
         with:
           path: cache
-          key: data-${{ hashFiles('scripts/build_data.py') }}
-      - name: Build data and site
-        run: python scripts/build_data.py
+          key: data-${{ hashFiles('scripts/*.py') }}
+      - name: Download books and build dictionary
+        run: python scripts/build_data.py data
+      - name: Machine-translate words missing Hebrew
+        continue-on-error: true
+        timeout-minutes: 40
+        run: |
+          if python -c "import json,sys; sys.exit(0 if json.load(open('cache/data/dict.json')).get('mt') else 1)"; then
+            echo "already translated"
+          else
+            pip install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+            pip install --quiet transformers sentencepiece sacremoses
+            python scripts/mt_fill.py
+          fi
+      - name: Assemble site
+        run: python scripts/build_data.py site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

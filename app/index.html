@@ -264,9 +264,13 @@ function candidates(w) {
 function lookupLocal(raw) {
   const w = norm(raw);
   for (const c of candidates(w)) {
-    if (dict.l[c]) return {word: w, lemma: c, he: dict.l[c][0], def: dict.l[c][1], src: 'מילון אופליין'};
-    const lem = dict.f[c];
-    if (lem && dict.l[lem]) return {word: w, lemma: lem, he: dict.l[lem][0], def: dict.l[lem][1], src: 'מילון אופליין'};
+    const lem = dict.l[c] ? c : dict.f[c];
+    const e = lem && dict.l[lem];
+    if (e) {
+      const web = !e[0] && webdict[lem];
+      return {word: w, lemma: lem, he: e[0] || (web ? web.he : ''), def: e[1], mt: e[2] === 1,
+        src: web && web.he ? 'מילון אופליין + תרגום מהאינטרנט' : e[2] === 1 ? 'מילון אופליין · תרגום מכונה, ייתכנו טעויות' : 'מילון אופליין'};
+    }
   }
   for (const c of candidates(w)) if (webdict[c]) return Object.assign({word: w, lemma: c, src: 'נשמר מהאינטרנט'}, webdict[c]);
   return {word: w, lemma: w, he: '', def: '', src: ''};
@@ -370,13 +374,14 @@ async function openSheet(word, ctx) {
   sel = Object.assign(r, {ctx, book: cur ? cur.book.title : ''});
   fillSheet(r);
   $('#sheet').classList.add('open');
-  if (!r.he && !r.def) {
-    if (navigator.onLine) {
-      $('#sHe').textContent = 'מחפש באינטרנט…';
-      const o = await lookupOnline(r.lemma);
-      if (sel !== r) return;
-      Object.assign(r, o, {src: 'מהאינטרנט (נשמר לפעם הבאה)'}); fillSheet(r);
-    }
+  if (!r.he && navigator.onLine) { // missing Hebrew: ask the internet when there is reception
+    $('#sHe').textContent = 'מחפש תרגום באינטרנט…';
+    const o = await lookupOnline(r.lemma);
+    if (sel !== r) return;
+    if (o.he) r.he = o.he;
+    if (!r.def && o.def) r.def = o.def;
+    r.src = r.src ? r.src + ' + תרגום מהאינטרנט' : 'מהאינטרנט (נשמר לפעם הבאה)';
+    fillSheet(r);
   }
 }
 function fillSheet(r) {
