@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f3b47">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>קריאה באנגלית</title>
+<style>
+:root{--bg:#faf8f5;--card:#fff;--line:#e4ddd2;--ink:#3d2f2c;--muted:#8a7d76;--teal:#1f3b47;--gold:#b8892e;
+  --l1:#3b7a5e;--l2:#2f6690;--l3:#8a3b4b;--read:20px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(10px + env(safe-area-inset-top)) 14px 8px;border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:10px}
+.top h1{font:700 21px/1.2 Georgia,"Times New Roman",serif;margin:0;flex:1}
+.net{font-size:12px;padding:3px 9px;border-radius:20px;background:#e8f1ec;color:var(--l1)}
+.net.off{background:#f6e7e4;color:#9b3d2e}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+nav button{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:8px 2px;font-size:14px}
+nav button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
+.muted{color:var(--muted);font-size:14px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:12px}
+.btn{border:0;background:var(--teal);color:#fff;border-radius:12px;padding:10px 14px}
+.btn.ghost{background:transparent;color:var(--teal);border:1px solid var(--teal)}
+.btn.small{padding:6px 10px;font-size:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.chips button{border:1px solid var(--line);background:var(--card);border-radius:30px;padding:7px 16px}
+.chips button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.book{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
+.tile{flex:none;width:54px;height:66px;border-radius:12px;color:#fff;display:flex;align-items:center;justify-content:center;font:700 26px Georgia,serif}
+.book .info{flex:1;min-width:0;direction:ltr;text-align:left}
+.book .t{font:700 17px/1.25 Georgia,serif}
+.book .a{font-size:13px;color:var(--muted)}
+.book .meta{direction:rtl;text-align:right;font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bar{height:5px;background:#eee7dc;border-radius:5px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--gold)}
+.dl{flex:none;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:8px 10px;font-size:13px;min-width:62px}
+.dl.ok{color:var(--l1);border-color:#cfe2d7;background:#f1f8f4}
+.lvl{border-radius:20px;padding:1px 8px;color:#fff;font-size:11px}
+/* reader */
+#reader{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column}
+#reader.open{display:flex}
+.rtop{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;border-bottom:1px solid var(--line)}
+.rtop .ttl{flex:1;font:700 15px Georgia,serif;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon{border:1px solid var(--line);background:var(--card);border-radius:10px;min-width:38px;height:38px;padding:0 8px}
+#page{flex:1;overflow-y:auto;padding:18px 18px 30px;direction:ltr;text-align:left;font:var(--read)/1.7 Georgia,"Times New Roman",serif}
+#page p{margin:0 0 1em}
+#page .w{border-radius:4px}
+#page .w.sv{background:#fbeec9}
+#page .w.sel{background:#cfe0ea}
+.rbot{direction:ltr;display:flex;align-items:center;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.rbot input{flex:1;accent-color:var(--teal)}
+.pg{font-size:13px;color:var(--muted);min-width:76px;text-align:center}
+/* sheet */
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top-left-radius:20px;border-top-right-radius:20px;
+  box-shadow:0 -6px 24px rgba(0,0,0,.15);padding:14px 16px calc(16px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .2s}
+#sheet.open{transform:none}
+.sw{display:flex;align-items:baseline;gap:10px;direction:ltr}
+.sw b{font:700 26px Georgia,serif}
+.sw .form{color:var(--muted);font-size:14px}
+.he{font-size:22px;font-weight:600;margin:6px 0}
+.def{direction:ltr;text-align:left;color:#5a4d47;font-size:15px;margin-bottom:6px}
+.src{font-size:12px;color:var(--muted)}
+.row{display:flex;gap:8px;margin-top:10px}
+.row .btn{flex:1}
+/* saved / review */
+.word{display:flex;gap:10px;align-items:flex-start}
+.word .en{direction:ltr;text-align:left;flex:1}
+.word .en b{font:700 18px Georgia,serif}
+.ctx{direction:ltr;text-align:left;font:15px/1.5 Georgia,serif;color:#5a4d47;margin-top:4px}
+.ctx mark{background:#fbeec9;color:inherit;border-radius:3px}
+.card{text-align:center;padding:26px 16px}
+.card .big{font:700 34px Georgia,serif;direction:ltr}
+.stats{display:flex;gap:8px;margin-bottom:12px}
+.stats div{flex:1;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px}
+.stats b{display:block;font-size:22px}
+textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:14px;padding:12px;font:18px/1.6 Georgia,serif;direction:ltr;text-align:left;background:#fff}
+.tag{display:inline-block;direction:ltr;border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin:3px;font-size:14px}
+.tag.used{background:#e8f1ec;border-color:#cfe2d7;color:var(--l1)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:9px 16px;border-radius:20px;font-size:14px;z-index:50;display:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><h1>📖 קריאה באנגלית</h1><span id="net" class="net">מחובר</span></div>
+  <nav>
+    <button data-v="lib" class="on">📚 ספרייה</button>
+    <button data-v="saved">⭐ שמורות <span id="nSaved"></span></button>
+    <button data-v="review">🔄 חזרה <span id="nDue"></span></button>
+    <button data-v="write">✍️ כתיבה</button>
+  </nav>
+</header>
+
+<main>
+  <section id="v-lib">
+    <div class="box" id="status"></div>
+    <div class="chips" id="levels"></div>
+    <div id="books"></div>
+  </section>
+  <section id="v-saved" class="hidden"></section>
+  <section id="v-review" class="hidden"></section>
+  <section id="v-write" class="hidden"></section>
+</main>
+
+<div id="reader">
+  <div class="rtop">
+    <button class="icon" id="rBack">→</button>
+    <div class="ttl" id="rTitle"></div>
+    <button class="icon" id="fMinus">A−</button>
+    <button class="icon" id="fPlus">A+</button>
+  </div>
+  <div id="page"></div>
+  <div class="rbot">
+    <button class="icon" id="pPrev">‹</button>
+    <span class="pg" id="pNum"></span>
+    <input type="range" id="pSlider" min="1" value="1">
+    <button class="icon" id="pNext">›</button>
+  </div>
+</div>
+
+<div id="sheet">
+  <div class="sw"><b id="sWord"></b><span class="form" id="sForm"></span></div>
+  <div class="he" id="sHe"></div>
+  <div class="def" id="sDef"></div>
+  <div class="src" id="sSrc"></div>
+  <div class="row">
+    <button class="btn ghost" id="sSpeak">🔊 השמע</button>
+    <button class="btn" id="sSave">⭐ שמור</button>
+    <button class="btn ghost" id="sClose">סגור</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const LEVELS = {1: ['בינוני', 'var(--l1)'], 2: ['מתקדם', 'var(--l2)'], 3: ['מומחה', 'var(--l3)']};
+const WORDS_PER_PAGE = 380;
+const BOOK_CACHE = 'books-v1';
+const DAY = 864e5, INTERVALS = [0, 1, 3, 7, 16, 35, 90];
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast('אין מקום לשמירה בטלפון'); } }
+};
+let books = [], dict = {l: {}, f: {}}, dictReady = false;
+let saved = store.get('saved', []);
+let progress = store.get('progress', {});
+let webdict = store.get('webdict', {});
+let level = 0, offline = new Set();
+let fontSize = store.get('font', 20);
+
+function toast(t) { const el = $('#toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => el.style.display = 'none', 2200); }
+function esc(s) { return s.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c])); }
+
+/* ---------- network badge ---------- */
+function net() { const on = navigator.onLine; const el = $('#net'); el.textContent = on ? 'מחובר' : 'אופליין'; el.className = 'net' + (on ? '' : ' off'); }
+addEventListener('online', net); addEventListener('offline', net);
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => show(b.dataset.v));
+function show(v) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  ['lib', 'saved', 'review', 'write'].forEach(x => $('#v-' + x).classList.toggle('hidden', x !== v));
+  if (v === 'saved') renderSaved();
+  if (v === 'review') renderReview();
+  if (v === 'write') renderWrite();
+  scrollTo(0, 0);
+}
+function counts() {
+  $('#nSaved').textContent = saved.length ? '(' + saved.length + ')' : '';
+  const due = saved.filter(s => (s.due || 0) <= Date.now()).length;
+  $('#nDue').textContent = due ? '(' + due + ')' : '';
+}
+
+/* ---------- library ---------- */
+async function loadBooks() {
+  try { books = await (await fetch('data/books.json')).json(); }
+  catch (e) { $('#books').innerHTML = '<div class="box">לא הצלחתי לטעון את רשימת הספרים. פתח את האפליקציה פעם אחת עם אינטרנט.</div>'; return; }
+  await checkOffline();
+  renderLevels(); renderBooks();
+}
+async function checkOffline() {
+  if (!('caches' in window)) return;
+  const c = await caches.open(BOOK_CACHE);
+  await Promise.all(books.map(async b => { if (await c.match(b.file, {ignoreSearch: true})) offline.add(b.id); }));
+  renderStatus();
+}
+function renderStatus() {
+  const n = Object.keys(dict.l).length;
+  $('#status').innerHTML =
+    `<div>${books.length} ספרים מלאים · <b>${offline.size}</b> שמורים בטלפון לקריאה בלי אינטרנט</div>
+     <div class="muted">מילון אופליין: ${dictReady ? (n ? n.toLocaleString() + ' מילים ✓' : 'לא זמין, משתמש בתרגום מהאינטרנט') : 'נטען…'}</div>
+     ${offline.size < books.length ? `<button class="btn" id="dlAll" style="margin-top:8px;width:100%">⬇ שמור את כל הספרים בטלפון</button>` : ''}`;
+  const b = $('#dlAll'); if (b) b.onclick = downloadAll;
+}
+function renderLevels() {
+  $('#levels').innerHTML = [[0, 'הכול'], [1, 'בינוני'], [2, 'מתקדם'], [3, 'מומחה']]
+    .map(([v, t]) => `<button data-l="${v}" class="${v === level ? 'on' : ''}">${t}</button>`).join('');
+  $('#levels').querySelectorAll('button').forEach(b => b.onclick = () => { level = +b.dataset.l; renderLevels(); renderBooks(); });
+}
+function bookPages(b) { return Math.max(1, Math.ceil(b.words / WORDS_PER_PAGE)); }
+function renderBooks() {
+  const list = books.filter(b => !level || b.level === level);
+  $('#books').innerHTML = list.map(b => {
+    const [lt, lc] = LEVELS[b.level];
+    const p = progress[b.id] ? Math.round(100 * (progress[b.id].page + 1) / progress[b.id].pages) : 0;
+    const ok = offline.has(b.id);
+    return `<div class="book" data-id="${b.id}">
+      <div class="tile" style="background:${lc}">${esc(b.title[0])}</div>
+      <div class="info"><div class="t">${esc(b.title)}</div><div class="a">${esc(b.author)}</div>
+        <div class="meta"><span class="lvl" style="background:${lc}">${lt}</span><span>${Math.round(b.words / 1000)}K מילים</span>${p ? `<span>נקראו ${p}%</span>` : ''}</div>
+        ${p ? `<div class="bar"><i style="width:${p}%"></i></div>` : ''}</div>
+      <button class="dl ${ok ? 'ok' : ''}" data-dl="${b.id}">${ok ? '✓ בטלפון' : '⬇ שמור'}</button>
+    </div>`;
+  }).join('');
+  $('#books').querySelectorAll('.book').forEach(el => el.onclick = e => {
+    const id = +el.dataset.id;
+    if (e.target.closest('.dl')) { if (!offline.has(id)) downloadBook(books.find(b => b.id === id)); return; }
+    openBook(id);
+  });
+}
+async function downloadBook(b, quiet) {
+  if (!navigator.onLine) { if (!quiet) toast('צריך אינטרנט כדי לשמור ספר'); return false; }
+  try {
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+    const c = await caches.open(BOOK_CACHE);
+    await c.add(b.file);
+    offline.add(b.id);
+    if (!quiet) { toast('נשמר בטלפון ✓'); renderBooks(); renderStatus(); }
+    return true;
+  } catch (e) { if (!quiet) toast('השמירה נכשלה, נסה שוב'); return false; }
+}
+async function downloadAll() {
+  const btn = $('#dlAll'); const todo = books.filter(b => !offline.has(b.id));
+  let i = 0;
+  for (const b of todo) { btn.textContent = `שומר… ${++i}/${todo.length}`; btn.disabled = true; await downloadBook(b, true); }
+  renderBooks(); renderStatus();
+  toast(offline.size === books.length ? 'כל הספרים שמורים ✓' : 'חלק מהספרים לא נשמרו, נסה שוב');
+}
+
+/* ---------- dictionary ---------- */
+async function loadDict() {
+  try { dict = await (await fetch('data/dict.json')).json(); } catch (e) { dict = {l: {}, f: {}}; }
+  dictReady = true; renderStatus();
+}
+function norm(w) { return w.toLowerCase().replace(/’/g, "'").replace(/'s$/, '').replace(/^'+|'+$/g, ''); }
+function candidates(w) {
+  const c = [w], add = x => { if (x && x.length > 1 && !c.includes(x)) c.push(x); };
+  const strip = (suf, rep = '') => w.endsWith(suf) ? w.slice(0, -suf.length) + rep : null;
+  for (const s of ["n't", "'ll", "'d", "'ve", "'re", "'m"]) add(strip(s));
+  add(strip('ies', 'y')); add(strip('ied', 'y')); add(strip('ier', 'y')); add(strip('iest', 'y')); add(strip('ily', 'y'));
+  add(strip('es')); add(strip('s')); add(strip('ed')); add(strip('d')); add(strip('ing')); add(strip('ing', 'e'));
+  add(strip('ly')); add(strip('er')); add(strip('est')); add(strip('er', 'e')); add(strip('est', 'e')); add(strip('ness')); add(strip('ment'));
+  for (const s of ['ed', 'ing', 'er', 'est']) { const b = strip(s); if (b && /([b-df-hj-np-tv-z])\1$/.test(b)) add(b.slice(0, -1)); }
+  return c;
+}
+function lookupLocal(raw) {
+  const w = norm(raw);
+  for (const c of candidates(w)) {
+    if (dict.l[c]) return {word: w, lemma: c, he: dict.l[c][0], def: dict.l[c][1], src: 'מילון אופליין'};
+    const lem = dict.f[c];
+    if (lem && dict.l[lem]) return {word: w, lemma: lem, he: dict.l[lem][0], def: dict.l[lem][1], src: 'מילון אופליין'};
+  }
+  for (const c of candidates(w)) if (webdict[c]) return Object.assign({word: w, lemma: c, src: 'נשמר מהאינטרנט'}, webdict[c]);
+  return {word: w, lemma: w, he: '', def: '', src: ''};
+}
+function timeout(p, ms) { return Promise.race([p, new Promise((_, r) => setTimeout(() => r('t'), ms))]); }
+async function lookupOnline(w) {
+  const [he, def] = await Promise.all([
+    timeout(fetch('https://api.mymemory.translated.net/get?langpair=en|he&q=' + encodeURIComponent(w)).then(r => r.json()), 7000)
+      .then(j => { const t = j.responseData && j.responseData.translatedText; return t && t.toLowerCase() !== w ? t : ''; }).catch(() => ''),
+    timeout(fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(w)).then(r => r.ok ? r.json() : []), 7000)
+      .then(j => { const m = j[0] && j[0].meanings && j[0].meanings[0]; return m ? `(${m.partOfSpeech}) ${m.definitions[0].definition}` : ''; }).catch(() => '')
+  ]);
+  if (he || def) { webdict[w] = {he, def}; store.set('webdict', webdict); }
+  return {he, def};
+}
+
+/* ---------- reader ---------- */
+let cur = null; // {book, paras, pages, page}
+async function openBook(id) {
+  const b = books.find(x => x.id === id);
+  $('#rTitle').textContent = b.title; $('#page').innerHTML = '<p style="text-align:center">טוען…</p>';
+  $('#reader').classList.add('open'); history.pushState({r: 1}, '');
+  let text;
+  try { const r = await fetch(b.file); if (!r.ok) throw 0; text = await r.text(); }
+  catch (e) { $('#page').innerHTML = '<p dir="rtl" style="text-align:right">הספר הזה לא שמור בטלפון ואין אינטרנט. כשתהיה קליטה, לחץ "⬇ שמור" ליד הספר בספרייה.</p>'; return; }
+  try { // keep a copy on the phone so it opens without reception next time
+    const c = await caches.open(BOOK_CACHE);
+    if (!await c.match(b.file, {ignoreSearch: true})) await c.put(b.file, new Response(text, {headers: {'Content-Type': 'text/plain; charset=utf-8'}}));
+    offline.add(id); renderStatus();
+  } catch (e) {}
+  const paras = text.split('\n');
+  const pages = []; let start = 0, count = 0;
+  paras.forEach((p, i) => { count += (p.match(/\S+/g) || []).length; if (count >= WORDS_PER_PAGE) { pages.push([start, i + 1]); start = i + 1; count = 0; } });
+  if (start < paras.length) pages.push([start, paras.length]);
+  const pr = progress[id];
+  const page = pr ? Math.min(Math.round(pr.page * pages.length / pr.pages), pages.length - 1) : 0;
+  cur = {book: b, paras, pages, page};
+  $('#pSlider').max = pages.length;
+  renderPage();
+}
+const WORD_RE = /[A-Za-z]+(?:['’][A-Za-z]+)*/g;
+function renderPage() {
+  const {paras, pages, page} = cur; const [a, z] = pages[page];
+  const savedSet = new Set(saved.map(s => s.lemma));
+  let html = '';
+  for (let i = a; i < z; i++) {
+    const p = paras[i]; let out = '', last = 0;
+    p.replace(WORD_RE, (m, idx) => {
+      out += esc(p.slice(last, idx));
+      const sv = savedSet.has(norm(m)) || savedSet.has(lookupLocal(m).lemma);
+      out += `<span class="w${sv ? ' sv' : ''}" data-p="${i}" data-o="${idx}">${m}</span>`;
+      last = idx + m.length; return m;
+    });
+    out += esc(p.slice(last));
+    html += `<p>${out}</p>`;
+  }
+  $('#page').innerHTML = html; $('#page').scrollTop = 0;
+  $('#pNum').textContent = `${page + 1} / ${pages.length}`; $('#pSlider').value = page + 1;
+  progress[cur.book.id] = {page, pages: pages.length, at: Date.now()}; store.set('progress', progress);
+}
+function goPage(n) { if (!cur) return; n = Math.max(0, Math.min(cur.pages.length - 1, n)); if (n !== cur.page) { cur.page = n; renderPage(); } closeSheet(); }
+$('#pNext').onclick = () => goPage(cur.page + 1);
+$('#pPrev').onclick = () => goPage(cur.page - 1);
+$('#pSlider').oninput = e => { $('#pNum').textContent = `${e.target.value} / ${cur.pages.length}`; };
+$('#pSlider').onchange = e => goPage(+e.target.value - 1);
+function closeReader() { $('#reader').classList.remove('open'); closeSheet(); cur = null; renderBooks(); }
+$('#rBack').onclick = () => { closeSheet(); history.back(); };
+addEventListener('popstate', () => {
+  if (!$('#reader').classList.contains('open')) return;
+  if ($('#sheet').classList.contains('open')) { closeSheet(); history.pushState({r: 1}, ''); return; }
+  closeReader();
+});
+function setFont(n) { fontSize = Math.max(15, Math.min(30, n)); document.documentElement.style.setProperty('--read', fontSize + 'px'); store.set('font', fontSize); }
+$('#fPlus').onclick = () => setFont(fontSize + 2); $('#fMinus').onclick = () => setFont(fontSize - 2);
+setFont(fontSize);
+// swipe between pages
+let tx = null;
+$('#page').addEventListener('touchstart', e => { tx = [e.touches[0].clientX, e.touches[0].clientY]; }, {passive: true});
+$('#page').addEventListener('touchend', e => {
+  if (!tx) return; const dx = e.changedTouches[0].clientX - tx[0], dy = e.changedTouches[0].clientY - tx[1]; tx = null;
+  if (Math.abs(dx) > 70 && Math.abs(dx) > 2 * Math.abs(dy)) goPage(cur.page + (dx < 0 ? 1 : -1));
+});
+
+/* ---------- word sheet ---------- */
+let sel = null;
+$('#page').addEventListener('click', e => {
+  const el = e.target.closest('.w'); if (!el) return closeSheet();
+  document.querySelectorAll('#page .sel').forEach(x => x.classList.remove('sel')); el.classList.add('sel');
+  const p = cur.paras[+el.dataset.p], o = +el.dataset.o;
+  openSheet(el.textContent, sentence(p, o, el.textContent.length));
+});
+function sentence(p, o, len) {
+  let s = o; while (s > 0 && !/[.!?]/.test(p[s - 1])) s--;
+  let e = o + len; while (e < p.length && !/[.!?]/.test(p[e])) e++;
+  let t = p.slice(s, Math.min(p.length, e + 1)).trim();
+  if (t.length > 260) { const a = Math.max(0, o - s - 120); t = '…' + t.slice(a, a + 240).trim() + '…'; }
+  return t.replace(/^["“‘'\s]+/, '');
+}
+async function openSheet(word, ctx) {
+  const r = lookupLocal(word);
+  sel = Object.assign(r, {ctx, book: cur ? cur.book.title : ''});
+  fillSheet(r);
+  $('#sheet').classList.add('open');
+  if (!r.he && !r.def) {
+    if (navigator.onLine) {
+      $('#sHe').textContent = 'מחפש באינטרנט…';
+      const o = await lookupOnline(r.lemma);
+      if (sel !== r) return;
+      Object.assign(r, o, {src: 'מהאינטרנט (נשמר לפעם הבאה)'}); fillSheet(r);
+    }
+  }
+}
+function fillSheet(r) {
+  $('#sWord').textContent = r.word;
+  $('#sForm').textContent = r.lemma !== r.word ? '← ' + r.lemma : '';
+  $('#sHe').textContent = r.he || (r.def ? '' : (navigator.onLine ? 'לא נמצא תרגום' : 'לא נמצא במילון האופליין'));
+  $('#sDef').textContent = r.def || '';
+  $('#sSrc').textContent = r.src || '';
+  const isSaved = saved.some(s => s.lemma === r.lemma);
+  $('#sSave').textContent = isSaved ? '✓ שמורה' : '⭐ שמור';
+}
+function closeSheet() { $('#sheet').classList.remove('open'); document.querySelectorAll('#page .sel').forEach(x => x.classList.remove('sel')); }
+$('#sClose').onclick = closeSheet;
+$('#sSpeak').onclick = () => speak(sel.word);
+$('#sSave').onclick = () => {
+  const i = saved.findIndex(s => s.lemma === sel.lemma);
+  if (i >= 0) { saved.splice(i, 1); toast('הוסרה מהשמורות'); }
+  else { saved.unshift({word: sel.word, lemma: sel.lemma, he: sel.he, def: sel.def, ctx: sel.ctx, book: sel.book, added: Date.now(), box: 0, due: Date.now()}); toast('נשמרה ⭐'); }
+  store.set('saved', saved); counts(); fillSheet(sel);
+  if (cur) { const set = new Set(saved.map(s => s.lemma)); document.querySelectorAll('#page .w').forEach(el => el.classList.toggle('sv', set.has(lookupLocal(el.textContent).lemma))); }
+};
+function speak(t) {
+  if (!('speechSynthesis' in window)) return toast('אין הקראה במכשיר הזה');
+  speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'en-GB'; u.rate = .9;
+  const v = speechSynthesis.getVoices().find(v => /^en[-_]GB/.test(v.lang)) || speechSynthesis.getVoices().find(v => /^en/.test(v.lang));
+  if (v) u.voice = v; speechSynthesis.speak(u);
+}
+
+/* ---------- saved ---------- */
+function markCtx(ctx, w) { const i = ctx.toLowerCase().indexOf(w.toLowerCase()); return i < 0 ? esc(ctx) : esc(ctx.slice(0, i)) + '<mark>' + esc(ctx.slice(i, i + w.length)) + '</mark>' + esc(ctx.slice(i + w.length)); }
+function renderSaved() {
+  const v = $('#v-saved');
+  if (!saved.length) { v.innerHTML = '<div class="box">עוד אין מילים שמורות. בזמן קריאה לחץ על מילה ואז על ⭐.</div>' + backupHtml(); bindBackup(); return; }
+  v.innerHTML = `<div class="muted" style="margin-bottom:8px">${saved.length} מילים שמורות</div>` + saved.map((s, i) => `
+    <div class="box word"><div class="en"><b>${esc(s.word)}</b>${s.lemma !== s.word ? ` <span class="muted">← ${esc(s.lemma)}</span>` : ''}
+      <div style="direction:rtl;text-align:right;font-weight:600">${esc(s.he || '')}</div>
+      ${s.def ? `<div class="muted">${esc(s.def)}</div>` : ''}
+      ${s.ctx ? `<div class="ctx">${markCtx(s.ctx, s.word)}</div>` : ''}
+      ${s.book ? `<div class="muted" style="font-style:italic">${esc(s.book)}</div>` : ''}</div>
+      <div><button class="icon" data-say="${i}">🔊</button><br><button class="icon" data-del="${i}" style="margin-top:6px">🗑</button></div></div>`).join('') + backupHtml();
+  v.querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(saved[+b.dataset.say].word));
+  v.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { if (confirm('למחוק את המילה?')) { saved.splice(+b.dataset.del, 1); store.set('saved', saved); counts(); renderSaved(); } });
+  bindBackup();
+}
+function backupHtml() {
+  return `<div class="box"><b>גיבוי</b><div class="muted">שמור קובץ עם המילים, ההתקדמות והכתיבה, ושחזר אותו אם תחליף טלפון.</div>
+  <div class="row"><button class="btn ghost" id="bExp">⬇ שמור גיבוי</button><button class="btn ghost" id="bImp">⬆ שחזר מגיבוי</button></div>
+  <input type="file" id="bFile" accept=".json,application/json" class="hidden"></div>`;
+}
+function bindBackup() {
+  $('#bExp').onclick = () => {
+    const data = {saved, progress, writings: store.get('writings', []), draft: store.get('draft', ''), webdict, v: 1};
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type: 'application/json'}));
+    a.download = 'english-reader-backup-' + new Date().toISOString().slice(0, 10) + '.json'; a.click();
+  };
+  $('#bImp').onclick = () => $('#bFile').click();
+  $('#bFile').onchange = async e => {
+    try {
+      const d = JSON.parse(await e.target.files[0].text());
+      if (!Array.isArray(d.saved)) throw 0;
+      const have = new Set(saved.map(s => s.lemma)); d.saved.forEach(s => { if (!have.has(s.lemma)) saved.push(s); });
+      progress = Object.assign({}, d.progress || {}, progress); webdict = Object.assign({}, d.webdict || {}, webdict);
+      if (d.writings) store.set('writings', d.writings.concat(store.get('writings', [])));
+      store.set('saved', saved); store.set('progress', progress); store.set('webdict', webdict);
+      counts(); renderSaved(); toast('הגיבוי שוחזר ✓');
+    } catch (err) { toast('הקובץ לא תקין'); }
+  };
+}
+
+/* ---------- review (Leitner) ---------- */
+let revCard = null, revShown = false;
+function renderReview() {
+  const v = $('#v-review'); const now = Date.now();
+  const due = saved.filter(s => (s.due || 0) <= now);
+  const learned = saved.filter(s => (s.box || 0) >= 4).length;
+  const stats = `<div class="stats"><div><b>${due.length}</b>לחזרה עכשיו</div><div><b>${saved.length}</b>שמורות</div><div><b>${learned}</b>נלמדו</div></div>`;
+  if (!saved.length) { v.innerHTML = stats + '<div class="box">שמור מילים בזמן קריאה, והן יופיעו כאן לחזרה.</div>'; return; }
+  if (!due.length) {
+    const next = Math.min(...saved.map(s => s.due || 0));
+    v.innerHTML = stats + `<div class="box card">🎉<div>אין מילים לחזרה עכשיו</div><div class="muted">החזרה הבאה: ${new Date(next).toLocaleDateString('he-IL')}</div></div>`; return;
+  }
+  revCard = due.sort((a, b) => (a.box || 0) - (b.box || 0) || (a.due || 0) - (b.due || 0))[0]; revShown = false;
+  const s = revCard;
+  v.innerHTML = stats + `<div class="box card">
+    <div class="big">${esc(s.word)}</div>
+    <button class="btn ghost small" id="rSay" style="margin:8px 0">🔊</button>
+    ${s.ctx ? `<div class="ctx" style="text-align:left">${markCtx(s.ctx, s.word)}</div>` : ''}
+    <div id="rAns" class="hidden"><div class="he" style="margin-top:14px">${esc(s.he || '—')}</div><div class="def">${esc(s.def || '')}</div></div>
+    <div class="row" id="rBtns"><button class="btn" id="rShow">הצג תרגום</button></div></div>`;
+  $('#rSay').onclick = () => speak(s.word);
+  $('#rShow').onclick = () => {
+    $('#rAns').classList.remove('hidden');
+    $('#rBtns').innerHTML = '<button class="btn ghost" id="rNo">✗ לא ידעתי</button><button class="btn" id="rYes">✓ ידעתי</button>';
+    $('#rNo').onclick = () => grade(false); $('#rYes').onclick = () => grade(true);
+  };
+}
+function grade(ok) {
+  const s = revCard;
+  s.box = ok ? Math.min((s.box || 0) + 1, INTERVALS.length - 1) : 0;
+  s.due = ok ? Date.now() + INTERVALS[s.box] * DAY : Date.now() + 60e3;
+  store.set('saved', saved); counts(); renderReview();
+}
+
+/* ---------- writing ---------- */
+const PROMPTS = ['Describe the most interesting character in the book you are reading.', 'Write what happened on your train ride today.',
+  'If you could live inside one of these books, which would it be and why?', 'Write a short letter to a character from your book.',
+  'Describe a place you love using at least five new words.', 'What would you change in the ending of the last book you read?',
+  'Write about a day when everything went wrong.', 'Explain a hobby of yours to someone who has never tried it.'];
+let challenge = null;
+function renderWrite() {
+  const v = $('#v-write'); const draft = store.get('draft', ''); const list = store.get('writings', []);
+  if (!challenge) {
+    const pool = saved.slice(0, 40).sort(() => Math.random() - .5);
+    challenge = {prompt: PROMPTS[Math.floor(Math.random() * PROMPTS.length)], words: pool.slice(0, 5).map(s => s.lemma)};
+  }
+  v.innerHTML = `<div class="box"><div class="muted">נושא לכתיבה</div><div style="direction:ltr;text-align:left;font:17px Georgia,serif">${esc(challenge.prompt)}</div>
+    ${challenge.words.length ? `<div class="muted" style="margin-top:8px">נסה לשלב מילים ששמרת:</div><div id="wTags"></div>` : ''}
+    <button class="btn ghost small" id="wNew" style="margin-top:8px">🎲 נושא אחר</button></div>
+    <textarea id="wText" placeholder="Start writing here…">${esc(draft)}</textarea>
+    <div class="row"><span class="muted" id="wCount" style="flex:1;align-self:center"></span><button class="btn" id="wSave">שמור טקסט</button></div>
+    ${list.length ? '<h3 style="margin:18px 0 8px">טקסטים קודמים</h3>' + list.map((w, i) => `<div class="box"><div class="muted">${new Date(w.at).toLocaleDateString('he-IL')} · ${w.n} מילים <button class="icon" data-wdel="${i}" style="float:left">🗑</button></div><div class="ctx">${esc(w.text).replace(/\n/g, '<br>')}</div></div>`).join('') : ''}`;
+  const ta = $('#wText');
+  const upd = () => {
+    const t = ta.value; store.set('draft', t);
+    const words = (t.match(WORD_RE) || []).map(norm);
+    $('#wCount').textContent = words.length + ' מילים';
+    const tg = $('#wTags'); if (tg) tg.innerHTML = challenge.words.map(w => `<span class="tag ${words.some(x => x === w || lookupLocal(x).lemma === w) ? 'used' : ''}">${esc(w)}</span>`).join('');
+  };
+  ta.oninput = upd; upd();
+  $('#wNew').onclick = () => { challenge = null; renderWrite(); };
+  $('#wSave').onclick = () => {
+    const t = ta.value.trim(); if (!t) return;
+    list.unshift({text: t, at: Date.now(), n: (t.match(WORD_RE) || []).length, prompt: challenge.prompt});
+    store.set('writings', list); store.set('draft', ''); challenge = null; toast('נשמר ✓'); renderWrite();
+  };
+  v.querySelectorAll('[data-wdel]').forEach(b => b.onclick = () => { if (confirm('למחוק את הטקסט?')) { list.splice(+b.dataset.wdel, 1); store.set('writings', list); renderWrite(); } });
+}
+
+/* ---------- start ---------- */
+net(); counts();
+loadBooks(); loadDict();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
