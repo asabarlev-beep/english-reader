@@ -23,17 +23,33 @@ self.addEventListener('fetch', e => {
 
   if (url.pathname.includes('/books/')) {               // books: from the phone first, save when read online
     e.respondWith(caches.open(BOOKS).then(async c => {
-      const hit = await c.match(req, { ignoreSearch: true });
+      const hit = await c.match(req);                    // exact address incl. ?v= (a new edition gets a new address)
       if (hit) return hit;
       const res = await fetch(req);
-      if (res.ok) c.put(req, res.clone());
+      if (res.ok) {
+        await c.put(req, res.clone());
+        for (const k of await c.keys()) {                // drop older editions of the same book
+          const u = new URL(k.url);
+          if (u.pathname === url.pathname && u.search !== url.search) c.delete(k);
+        }
+      }
       return res;
     }));
     return;
   }
 
-  e.respondWith(caches.match(req, { ignoreSearch: true }).then(hit => {
-    if (hit) return hit;
-    return fetch(req).catch(() => req.mode === 'navigate' ? caches.match('index.html') : Response.error());
-  }));
+  if (req.mode === 'navigate') {                         // the app page: newest version when there is reception
+    e.respondWith((async () => {
+      try {
+        const res = await Promise.race([fetch(req), new Promise((_, r) => setTimeout(() => r('slow'), 3500))]);
+        if (res.ok) (await caches.open(SHELL)).put('index.html', res.clone());
+        return res;
+      } catch (err) {
+        return (await caches.match('index.html')) || (await caches.match('./')) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  e.respondWith(caches.match(req, { ignoreSearch: true }).then(hit => hit || fetch(req)));
 });

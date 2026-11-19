@@ -12,6 +12,7 @@ Results in cache/ are reused between runs (actions/cache), so the heavy
 download happens only when this script changes.
 """
 import gzip
+import hashlib
 import io
 import json
 import os
@@ -197,8 +198,9 @@ def build_books():
         chapters = sum(1 for l in lines if l.startswith("#\t"))
         with open(os.path.join(bdir, f"{gid}.txt"), "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
+        h = hashlib.md5("\n".join(lines).encode("utf-8")).hexdigest()[:8]   # new text -> new address, so phones never keep an old copy
         meta.append({"id": gid, "title": title or f"Book {gid}", "author": author or "",
-                     "level": level, "words": words, "chapters": chapters, "file": f"books/{gid}.txt"})
+                     "level": level, "words": words, "chapters": chapters, "file": f"books/{gid}.txt?v={h}"})
         log(f"book {gid}: {title} / {author} ({words} words, {chapters} chapters)")
     os.makedirs(os.path.join(CACHE, "data"), exist_ok=True)
     json.dump(meta, open(os.path.join(CACHE, "data", "books.json"), "w", encoding="utf-8"), ensure_ascii=False)

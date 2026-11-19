@@ -213,7 +213,7 @@ async function loadBooks() {
 async function checkOffline() {
   if (!('caches' in window)) return;
   const c = await caches.open(BOOK_CACHE);
-  await Promise.all(books.map(async b => { if (await c.match(b.file, {ignoreSearch: true})) offline.add(b.id); }));
+  await Promise.all(books.map(async b => { if (await c.match(b.file)) offline.add(b.id); }));
   renderStatus();
 }
 function renderStatus() {
@@ -322,7 +322,7 @@ async function openBook(id) {
   catch (e) { $('#page').innerHTML = '<p dir="rtl" style="text-align:right">הספר הזה לא שמור בטלפון ואין אינטרנט. כשתהיה קליטה, לחץ "⬇ שמור" ליד הספר בספרייה.</p>'; return; }
   try { // keep a copy on the phone so it opens without reception next time
     const c = await caches.open(BOOK_CACHE);
-    if (!await c.match(b.file, {ignoreSearch: true})) await c.put(b.file, new Response(text, {headers: {'Content-Type': 'text/plain; charset=utf-8'}}));
+    if (!await c.match(b.file)) await c.put(b.file, new Response(text, {headers: {'Content-Type': 'text/plain; charset=utf-8'}}));
     offline.add(id); renderStatus();
   } catch (e) {}
   const kinds = [], paras = [];
@@ -576,7 +576,16 @@ function renderWrite() {
 /* ---------- start ---------- */
 net(); counts();
 loadBooks(); loadDict();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+  // a new version was installed: reload once so everything (books, dictionary) comes from the new version
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) return;
+    if ($('#reader').classList.contains('open')) toast('גרסה חדשה הותקנה, תיטען בפתיחה הבאה');
+    else location.reload();
+  });
+}
 </script>
 </body>
 </html>
