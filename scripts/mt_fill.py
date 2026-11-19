@@ -11,6 +11,7 @@ import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PATH = os.path.join(ROOT, "cache", "data", "dict.json")
+MEMO = os.path.join(ROOT, "cache", "data", "mt_memo.json")   # word -> Hebrew, kept across rebuilds
 MODEL = "Helsinki-NLP/opus-mt-en-he"
 HEB = re.compile(r"[֐-׿]")
 
@@ -20,9 +21,17 @@ def main():
     if d.get("mt"):
         print("mt: already done")
         return
-    todo = [w for w, v in d["l"].items() if not v[0] and w.isalpha() and len(w) > 1]
-    print(f"mt: {len(todo)} words without Hebrew")
+    memo = json.load(open(MEMO, encoding="utf-8")) if os.path.exists(MEMO) else {}
+    reused = 0
+    for w, v in d["l"].items():
+        if not v[0] and memo.get(w):
+            d["l"][w] = [memo[w], v[1], 1]
+            reused += 1
+    todo = [w for w, v in d["l"].items() if not v[0] and w.isalpha() and len(w) > 1 and w not in memo]
+    print(f"mt: reused {reused}, {len(todo)} new words without Hebrew")
     if not todo:
+        d["mt"] = True
+        json.dump(d, open(PATH, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
         return
     import torch
     from transformers import MarianMTModel, MarianTokenizer
@@ -43,10 +52,12 @@ def main():
                 v = d["l"][w]
                 d["l"][w] = [h, v[1], 1]
                 done += 1
+            memo[w] = d["l"][w][0] if d["l"][w][2:] == [1] else ""
         if i % (B * 40) == 0:
             print(f"  {i}/{len(todo)}  {time.time() - t0:.0f}s", flush=True)
     d["mt"] = True
     json.dump(d, open(PATH, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    json.dump(memo, open(MEMO, "w", encoding="utf-8"), ensure_ascii=False)
     print(f"mt: added Hebrew to {done} words in {time.time() - t0:.0f}s")
 
 

@@ -30,6 +30,9 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 .btn.small{padding:6px 10px;font-size:14px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .chips button{border:1px solid var(--line);background:var(--card);border-radius:30px;padding:7px 16px}
+#levels .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+#levels .chips::-webkit-scrollbar{display:none}
+.chips button{white-space:nowrap;flex:none}
 .chips button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
 .book{position:relative;display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;margin-bottom:10px;cursor:pointer}
 .cover{flex:none;position:relative;width:62px;height:88px;border-radius:3px 9px 9px 3px;color:#fff;overflow:hidden;
@@ -154,7 +157,7 @@ textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:
 <main>
   <section id="v-lib">
     <div class="box" id="status"></div>
-    <div class="chips" id="levels"></div>
+    <div id="levels" style="margin:12px 0"></div>
     <div id="books"></div>
   </section>
   <section id="v-saved" class="hidden"></section>
@@ -214,6 +217,9 @@ let saved = store.get('saved', []);
 let progress = store.get('progress', {});
 let webdict = store.get('webdict', {});
 let level = 0, offline = new Set();
+const GENRES = [['', 'הכול'], ['mystery', '🔍 מתח ובלש'], ['adventure', '🧭 הרפתקאות'], ['classic', '📜 קלאסיקה'], ['kids', '🧒 ילדים ונוער']];
+let genre = store.get('genre', '');
+const inGenre = b => !genre || b.genre === genre;
 // default size fits the real width (phones with enlarged text get a smaller default)
 const autoFont = innerWidth < 300 ? 15 : innerWidth < 360 ? 16 : 18;
 let fontSize = store.get('font2', autoFont);
@@ -265,9 +271,13 @@ function renderStatus() {
   const b = $('#dlAll'); if (b) b.onclick = downloadAll;
 }
 function renderLevels() {
-  $('#levels').innerHTML = [[0, 'הכול'], [1, 'בינוני'], [2, 'מתקדם'], [3, 'מומחה']]
-    .map(([v, t]) => `<button data-l="${v}" class="${v === level ? 'on' : ''}">${t} <span style="opacity:.6">${books.filter(b => !v || b.level === v).length}</span></button>`).join('');
-  $('#levels').querySelectorAll('button').forEach(b => b.onclick = () => { level = +b.dataset.l; renderLevels(); renderBooks(); });
+  const chip = (attr, v, t, on, n) => `<button ${attr}="${v}" class="${on ? 'on' : ''}">${t} <span style="opacity:.6">${n}</span></button>`;
+  $('#levels').innerHTML =
+    '<div class="chips" style="margin:0 0 8px">' + GENRES.map(([v, t]) => chip('data-g', v, t, v === genre, books.filter(b => !v || b.genre === v).length)).join('') + '</div>' +
+    '<div class="chips" style="margin:0">' + [[0, 'כל הרמות'], [1, 'בינוני'], [2, 'מתקדם'], [3, 'מומחה']]
+      .map(([v, t]) => chip('data-l', v, t, v === level, books.filter(b => inGenre(b) && (!v || b.level === v)).length)).join('') + '</div>';
+  $('#levels').querySelectorAll('[data-g]').forEach(b => b.onclick = () => { genre = b.dataset.g; store.set('genre', genre); renderLevels(); renderBooks(); });
+  $('#levels').querySelectorAll('[data-l]').forEach(b => b.onclick = () => { level = +b.dataset.l; renderLevels(); renderBooks(); });
 }
 function bookPages(b) { return Math.max(1, Math.ceil(b.words / WORDS_PER_PAGE)); }
 const COVERS = ['#1f3b47', '#3b6e5a', '#7a3b46', '#2f5d8a', '#6b4e2e', '#4a3f6b', '#2e6b6b', '#8a5a2b', '#3d4f2f', '#5b2f4f'];
@@ -278,10 +288,10 @@ function cover(b, sm) {
 function readTime(words) { const m = words / 170; return m < 60 ? Math.round(m / 5) * 5 + ' דק׳' : 'כ-' + (Math.round(m / 30) / 2) + ' שעות'; }
 function pct(id) { const p = progress[id]; return p ? Math.max(1, Math.round(100 * (p.page + 1) / p.pages)) : 0; }
 function renderBooks() {
-  const list = books.filter(b => !level || b.level === level).sort((a, b) => a.level - b.level || a.words - b.words);
+  const list = books.filter(b => inGenre(b) && (!level || b.level === level)).sort((a, b) => a.level - b.level || a.words - b.words);
   const reading = books.filter(b => progress[b.id]).sort((a, b) => progress[b.id].at - progress[a.id].at).slice(0, 4);
   let html = '';
-  if (reading.length && !level) {
+  if (reading.length && !level && !genre) {
     html += '<h3 class="sec">📖 המשך לקרוא</h3><div class="cont">' + reading.map(b => `
       <div class="c" data-id="${b.id}">${cover(b, 1)}<div style="flex:1;min-width:0"><div class="t">${esc(b.he || b.title)}</div>
         <div class="muted">נקראו ${pct(b.id)}%</div><div class="bar"><i style="width:${pct(b.id)}%"></i></div></div></div>`).join('') + '</div>';
@@ -303,6 +313,7 @@ function renderBooks() {
       <button class="dl ${ok ? 'ok' : ''}" data-dl="${b.id}" title="${ok ? 'שמור בטלפון' : 'שמור לקריאה בלי אינטרנט'}">${ok ? '✓' : '⬇'}</button>
     </div>`;
   }).join('');
+  if (!list.length) html += '<div class="box muted" style="text-align:center">אין ספרים ברמה הזו בקטגוריה שבחרת</div>';
   $('#books').innerHTML = html;
   $('#books').querySelectorAll('.book, .cont .c').forEach(el => el.onclick = e => {
     const id = +el.dataset.id;

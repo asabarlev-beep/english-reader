@@ -36,7 +36,20 @@ BOOKS = [
     (45, 2), (514, 2), (103, 2), (64317, 2), (5200, 2), (844, 2), (174, 2),
     (1342, 3), (84, 3), (345, 3), (1260, 3), (768, 3), (1400, 3), (98, 3),
     (2701, 3),
+    # adults: mystery & detective
+    (244, 2), (2097, 2), (834, 2), (108, 2), (3289, 2), (863, 2), (1155, 2), (58866, 2), (1872, 2),
+    (558, 2), (155, 3), (583, 3), (204, 3), (1695, 3),
+    # adults: adventure
+    (60, 2), (164, 2), (18857, 2), (1268, 2), (2166, 2), (139, 2), (95, 2), (421, 2),
+    (1257, 3), (1184, 3), (5658, 3),
 ]
+
+# genre: kids=ילדים ונוער, mystery=מתח ובלש, adventure=הרפתקאות, classic=קלאסיקה
+GENRE = {
+    **{i: "kids" for i in (11, 12, 16, 55, 113, 271, 236, 289, 74, 45, 514)},
+    **{i: "mystery" for i in (1661, 2852, 43, 244, 2097, 834, 108, 3289, 863, 1155, 58866, 1872, 558, 155, 583, 204, 1695)},
+    **{i: "adventure" for i in (120, 215, 910, 103, 35, 36, 5230, 2701, 60, 164, 18857, 1268, 2166, 139, 95, 421, 1257, 1184, 5658)},
+}
 
 # short English title, Hebrew title, one-line Hebrew description, year
 INFO = {
@@ -74,7 +87,40 @@ INFO = {
     1400: ("Great Expectations", "תקוות גדולות", "יתום בשם פיפ מקבל הון ממיטיב אלמוני.", 1861),
     98: ("A Tale of Two Cities", "בין שתי ערים", "לונדון ופריז בימי המהפכה הצרפתית.", 1859),
     2701: ("Moby Dick", "מובי דיק", "רב החובל אחאב רודף אחרי הלווייתן הלבן.", 1851),
+    244: ("A Study in Scarlet", "חקירה בשני", "ההופעה הראשונה של שרלוק הולמס: גופה בבית נטוש ומילה כתובה בדם.", 1887),
+    2097: ("The Sign of the Four", "סימן הארבעה", "אוצר הודי, ברית סודית ורצח בחדר נעול.", 1890),
+    834: ("The Memoirs of Sherlock Holmes", "זיכרונות שרלוק הולמס", "עוד תעלומות של הולמס, עד העימות עם פרופסור מוריארטי.", 1893),
+    108: ("The Return of Sherlock Holmes", "שובו של שרלוק הולמס", "הולמס חוזר אחרי שנחשב למת, ופותר שוב תעלומות בלונדון.", 1905),
+    3289: ("The Valley of Fear", "עמק הפחד", "הודעה מוצפנת, רצח באחוזה ואגודה סודית מאמריקה.", 1915),
+    863: ("The Mysterious Affair at Styles", "הפרשה המסתורית בסטיילס", "הופעת הבכורה של הרקול פוארו: הרעלה באחוזה כפרית.", 1920),
+    1155: ("The Secret Adversary", "האויב הסודי", "טומי וטופנס רודפים אחרי מסמך סודי ואויב שאיש אינו יודע מיהו.", 1922),
+    58866: ("The Murder on the Links", "הרצח במגרש הגולף", "פוארו נקרא לצרפת וחוקר רצח שהתגלה ליד מגרש גולף.", 1923),
+    1872: ("The Red House Mystery", "תעלומת הבית האדום", "ירייה בחדר נעול בבית כפרי, ואורח סקרן מתחיל לחקור.", 1922),
+    558: ("The Thirty-Nine Steps", "39 המדרגות", "אדם תמים נרדף ברחבי סקוטלנד אחרי שנקלע למזימת ריגול.", 1915),
+    155: ("The Moonstone", "אבן הירח", "יהלום הודי מקולל נעלם ובבית כולם חשודים. נחשב לרומן הבלשי הראשון.", 1868),
+    583: ("The Woman in White", "האישה בלבן", "פגישה לילית עם אישה מסתורית חושפת קנוניה של זהויות מוחלפות.", 1859),
+    204: ("The Innocence of Father Brown", "תמימותו של האב בראון", "כומר צנוע פותר פשעים בעזרת הבנה עמוקה של נפש האדם.", 1911),
+    1695: ("The Man Who Was Thursday", "האיש שהיה יום חמישי", "שוטר חודר לחבורת אנרכיסטים, ושום דבר אינו כפי שהוא נראה.", 1908),
+    60: ("The Scarlet Pimpernel", "הפימפרנל האדום", "גיבור רעול זהות מבריח אצילים מהגיליוטינה של המהפכה הצרפתית.", 1905),
+    164: ("Twenty Thousand Leagues Under the Sea", "עשרים אלף מיל מתחת למים", "קפטן נמו והצוללת נאוטילוס במסע במעמקי האוקיינוס.", 1870),
+    18857: ("Journey to the Centre of the Earth", "מסע אל בטן האדמה", "פרופסור ואחיינו יורדים דרך הר געש אל מעמקי כדור הארץ.", 1864),
+    1268: ("The Mysterious Island", "האי המסתורי", "ניצולי כדור פורח בונים חיים חדשים על אי בודד וסודי.", 1875),
+    2166: ("King Solomon's Mines", "מכרות שלמה המלך", "משלחת יוצאת ללב אפריקה בחיפוש אחר אוצר אגדי.", 1885),
+    139: ("The Lost World", "העולם האבוד", "משלחת מגלה רמה בדרום אמריקה שבה עדיין חיים דינוזאורים.", 1912),
+    95: ("The Prisoner of Zenda", "האסיר מזנדה", "אנגלי שדומה למלך נאלץ להתחזות לו כדי להציל את הכתר.", 1894),
+    421: ("Kidnapped", "חטוף", "נער נחטף לספינה ובורח עם מורד סקוטי דרך הרמות.", 1886),
+    1257: ("The Three Musketeers", "שלושת המוסקטרים", "ד'ארטניאן הצעיר מצטרף לשלושה לוחמים אמיצים בצרפת של המאה ה-17.", 1844),
+    1184: ("The Count of Monte Cristo", "הרוזן ממונטה כריסטו", "מלח שנכלא על לא עוול בכפו בורח, מתעשר ונוקם.", 1844),
+    5658: ("Lord Jim", "לורד ג'ים", "קצין צעיר שכשל ברגע אחד מחפש גאולה באיים רחוקים.", 1900),
 }
+
+
+def same_book(a, b):
+    """True if two titles share their main words (protects against a wrong Gutenberg number)."""
+    stop = {"the", "a", "an", "of", "in", "to", "and", "or", "at", "on", "under", "into", "being"}
+    wa = set(re.findall(r"[a-z]+", (a or "").lower())) - stop
+    wb = set(re.findall(r"[a-z]+", (b or "").lower())) - stop
+    return bool(wa & wb)
 
 KAIKKI_URLS = [
     "https://kaikki.org/dictionary/English/kaikki.org-dictionary-English.jsonl",
@@ -238,7 +284,11 @@ def build_books():
             f.write("\n".join(lines))
         h = hashlib.md5("\n".join(lines).encode("utf-8")).hexdigest()[:8]   # new text -> new address, so phones never keep an old copy
         short, he, desc, year = INFO.get(gid, (title or f"Book {gid}", "", "", None))
+        if title and not same_book(short, title):
+            log(f"!! book {gid}: expected '{short}' but Gutenberg has '{title}' - showing the real title")
+            short, he, desc, year = title, "", "", None
         meta.append({"id": gid, "title": short, "he": he, "desc": desc, "year": year, "author": author or "",
+                     "genre": GENRE.get(gid, "classic"),
                      "level": level, "words": words, "chapters": chapters, "file": f"books/{gid}.txt?v={h}"})
         log(f"book {gid}: {title} / {author} ({words} words, {chapters} chapters)")
     os.makedirs(os.path.join(CACHE, "data"), exist_ok=True)
@@ -283,9 +333,27 @@ def he_translations(entry):
 
 def build_dict(vocab):
     path = os.path.join(CACHE, "data", "dict.json")
+    sig = hashlib.md5(" ".join(sorted(vocab)).encode()).hexdigest()[:12]
     if os.path.exists(path):
-        log("dict: using cache")
-        return
+        try:
+            if json.load(open(path, encoding="utf-8")).get("sig") == sig:
+                log("dict: using cache")
+                return
+        except Exception:  # noqa
+            pass
+        log("dict: book list changed, rebuilding")
+        # keep earlier machine translations so they are not computed again
+        try:
+            old = json.load(open(path, encoding="utf-8"))["l"]
+            memo_path = os.path.join(CACHE, "data", "mt_memo.json")
+            memo = json.load(open(memo_path, encoding="utf-8")) if os.path.exists(memo_path) else {}
+            for w, v in old.items():
+                if len(v) > 2 and v[2] == 1 and v[0]:
+                    memo.setdefault(w, v[0])
+            json.dump(memo, open(memo_path, "w", encoding="utf-8"), ensure_ascii=False)
+            log(f"dict: kept {len(memo)} earlier machine translations")
+        except Exception as e:  # noqa
+            log("dict: could not keep old translations:", e)
     lemmas = {}                  # word -> {"he": [], "d": []}
     forms = defaultdict(list)    # form -> [lemma]
     n = 0
@@ -376,7 +444,7 @@ def build_dict(vocab):
     log(f"dict: {len(out_l)} words ({with_he} with Hebrew), {len(out_f)} forms")
     cov = sum(1 for w in vocab if w in out_l or w in out_f)
     log(f"dict: covers {cov}/{len(vocab)} distinct book words")
-    json.dump({"l": out_l, "f": out_f}, open(path, "w", encoding="utf-8"),
+    json.dump({"l": out_l, "f": out_f, "sig": sig}, open(path, "w", encoding="utf-8"),
               ensure_ascii=False, separators=(",", ":"))
 
 
