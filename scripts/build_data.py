@@ -190,10 +190,12 @@ NUM_WORDS = ("One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thi
              "Sixteen|Seventeen|Eighteen|Nineteen|Twenty|First|Second|Third|Fourth|Fifth|Sixth|Seventh|"
              "Eighth|Ninth|Tenth|Last|the Last|the First")
 HEAD_RE = re.compile(
-    r"^(?:(?:CHAPTER|Chapter|STAVE|Stave|BOOK|Book|PART|Part|LETTER|Letter|ACT|Act|VOLUME|Volume)\s+"
+    r"^(?:(?:CHAPTER|Chapter|STAVE|Stave|BOOK|Book|PART|Part|LETTER|Letter|ACT|Act|VOLUME|Volume|ADVENTURE|Adventure|STORY|Story|EPISODE|Episode)\s+"
     r"(?:[IVXLCDM]+|\d+|" + NUM_WORDS + r"|" + NUM_WORDS.upper() + r")\b(?:[.:\-—]?\s*.*)?"
     r"|(?:FIRST|SECOND|THIRD|FOURTH|FIFTH) ACT\b.*"
-    r"|[IVXLC]{1,7}(?:\.\s*[A-Z0-9 ,'’\-—.:;!?]*)?)$")
+    r"|[IVXLC]{1,7}(?:\.\s*[A-Z0-9 ,'’\-—.:;!?]*)?"
+    r"|[IVXLC]{1,7}\.\s+[A-Z][A-Za-z'’,\- ]{1,60}"         # I. The Blue Cross
+    r"|\d{1,3}\.?(?:\s+[A-Z][A-Za-z'’,\- ]{1,60})?)$")      # 1  /  1. A Fellow Traveller
 
 
 def is_heading(t):
