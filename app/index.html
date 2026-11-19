@@ -14,13 +14,18 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 button{font:inherit;color:inherit;cursor:pointer}
-header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(10px + env(safe-area-inset-top)) 14px 8px;border-bottom:1px solid var(--line)}
-.top{display:flex;align-items:center;gap:10px}
-.top h1{font:700 21px/1.2 Georgia,"Times New Roman",serif;margin:0;flex:1}
-.net{font-size:12px;padding:3px 9px;border-radius:20px;background:#e8f1ec;color:var(--l1)}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(8px + env(safe-area-inset-top)) 12px 8px;border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:8px}
+.top h1{font:700 18px/1.2 Georgia,"Times New Roman",serif;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.net{flex:none;font-size:11px;padding:2px 8px;border-radius:20px;background:#e8f1ec;color:var(--l1)}
 .net.off{background:#f6e7e4;color:#9b3d2e}
-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
-nav button{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:8px 2px;font-size:14px}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}
+nav button{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:5px 2px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:4px;min-width:0}
+nav button i{font-style:normal;font-size:14px}
+nav button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+nav button b{font-weight:600;font-size:11px;margin-right:3px}
+#status{font-size:13px;color:var(--muted);margin:2px 2px 0}
+#status.need{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--ink);font-size:14px}
 nav button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
 main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 .muted{color:var(--muted);font-size:14px}
@@ -28,8 +33,8 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 .btn{border:0;background:var(--teal);color:#fff;border-radius:12px;padding:10px 14px}
 .btn.ghost{background:transparent;color:var(--teal);border:1px solid var(--teal)}
 .btn.small{padding:6px 10px;font-size:14px}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-.chips button{border:1px solid var(--line);background:var(--card);border-radius:30px;padding:7px 16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.chips button{border:1px solid var(--line);background:var(--card);border-radius:30px;padding:5px 12px;font-size:14px}
 #levels .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 #levels .chips::-webkit-scrollbar{display:none}
 .chips button{white-space:nowrap;flex:none}
@@ -106,6 +111,18 @@ h3.sec{font-size:15px;margin:14px 2px 8px;color:var(--muted);font-weight:600}
 #rset .ff.on,#rset .th.on{background:var(--teal);color:#fff;border-color:var(--teal)}
 #rset b{min-width:26px;text-align:center}
 @media (max-width:340px){
+  .top h1{font-size:15px}
+  nav{gap:4px}
+  nav button{flex-direction:column;gap:0;padding:4px 1px;font-size:11px;line-height:1.25}
+  nav button i{font-size:13px}
+  main{padding:10px 10px 80px}
+  .chips button{font-size:12px;padding:4px 10px}
+  #levels .chips{margin-bottom:6px!important}
+  #status{font-size:11.5px}
+  .book{gap:10px;padding:10px}
+  .cover{width:48px;height:68px}.cover b{font-size:22px}
+  .book .he{font-size:15px}.book .en{font-size:12.5px}.book .desc{font-size:12.5px}
+  h3.sec{font-size:13px;margin:10px 2px 6px}
   .rbot input{display:none}
   .pg{flex:1}
   #page{padding:14px 12px 30px;text-align:left}
@@ -147,16 +164,16 @@ textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:
 <header>
   <div class="top"><h1>📖 קריאה באנגלית</h1><span id="net" class="net">מחובר</span></div>
   <nav>
-    <button data-v="lib" class="on">📚 ספרייה</button>
-    <button data-v="saved">⭐ שמורות <span id="nSaved"></span></button>
-    <button data-v="review">🔄 חזרה <span id="nDue"></span></button>
-    <button data-v="write">✍️ כתיבה</button>
+    <button data-v="lib" class="on"><i>📚</i><span>ספרייה</span></button>
+    <button data-v="saved"><i>⭐</i><span>שמורות<b id="nSaved"></b></span></button>
+    <button data-v="review"><i>🔄</i><span>חזרה<b id="nDue"></b></span></button>
+    <button data-v="write"><i>✍️</i><span>כתיבה</span></button>
   </nav>
 </header>
 
 <main>
   <section id="v-lib">
-    <div class="box" id="status"></div>
+    <div id="status"></div>
     <div id="levels" style="margin:12px 0"></div>
     <div id="books"></div>
   </section>
@@ -244,9 +261,9 @@ function show(v) {
   scrollTo(0, 0);
 }
 function counts() {
-  $('#nSaved').textContent = saved.length ? '(' + saved.length + ')' : '';
+  $('#nSaved').textContent = saved.length ? saved.length : '';
   const due = saved.filter(s => (s.due || 0) <= Date.now()).length;
-  $('#nDue').textContent = due ? '(' + due + ')' : '';
+  $('#nDue').textContent = due ? due : '';
 }
 
 /* ---------- library ---------- */
@@ -263,11 +280,14 @@ async function checkOffline() {
   renderStatus();
 }
 function renderStatus() {
-  const n = Object.keys(dict.l).length;
-  $('#status').innerHTML =
-    `<div>${books.length} ספרים מלאים · <b>${offline.size}</b> שמורים בטלפון לקריאה בלי אינטרנט</div>
-     <div class="muted">מילון אופליין: ${dictReady ? (n ? n.toLocaleString() + ' מילים ✓' : 'לא זמין, משתמש בתרגום מהאינטרנט') : 'נטען…'}</div>
-     ${offline.size < books.length ? `<button class="btn" id="dlAll" style="margin-top:8px;width:100%">⬇ שמור את כל הספרים בטלפון</button>` : ''}`;
+  const n = Object.keys(dict.l).length, el = $('#status');
+  const dictTxt = dictReady ? (n ? 'מילון ' + n.toLocaleString() + ' מילים' : 'מילון: רק עם אינטרנט') : 'מילון נטען…';
+  const all = books.length && offline.size >= books.length;
+  el.className = all ? '' : 'need';
+  el.innerHTML = all
+    ? `✓ כל ${books.length} הספרים שמורים בטלפון · ${dictTxt}`
+    : `<div>${offline.size} מתוך ${books.length} ספרים שמורים בטלפון · <span class="muted">${dictTxt}</span></div>
+       <button class="btn" id="dlAll" style="margin-top:8px;width:100%">⬇ שמור את כל הספרים בטלפון</button>`;
   const b = $('#dlAll'); if (b) b.onclick = downloadAll;
 }
 function renderLevels() {
