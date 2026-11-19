@@ -62,8 +62,42 @@ def fetch(url, tries=3):
             with urllib.request.urlopen(req, timeout=60) as r:
                 return r.read()
         except Exception as e:  # noqa
-            log(f"  retry {i + 1} {url}: {e}")
-            time.sleep(3 * (i + 1))
+            log(f"  fail {url}: {e}")
+            if tries > 1:
+                time.sleep(3 * (i + 1))
+    return None
+
+
+def book_urls(gid):
+    """Gutenberg itself often refuses cloud servers, so try its mirrors too."""
+    d = str(gid)
+    sub = "0/" + d if len(d) == 1 else "/".join(d[:-1]) + "/" + d
+    mirrors = ["https://gutenberg.pglaf.org", "https://aleph.pglaf.org",
+               "https://mirrors.xmission.com/gutenberg", "https://gutenberg.readingroo.ms",
+               "https://mirror.csclub.uwaterloo.ca/gutenberg"]
+    urls = [f"https://www.gutenberg.org/cache/epub/{gid}/pg{gid}.txt"]
+    for m in mirrors:
+        urls += [f"{m}/cache/epub/{gid}/pg{gid}.txt", f"{m}/{sub}/{gid}-0.txt", f"{m}/{sub}/{gid}.txt"]
+    urls += [f"https://www.gutenberg.org/files/{gid}/{gid}-0.txt", f"https://www.gutenberg.org/files/{gid}/{gid}.txt"]
+    return urls
+
+
+GOOD_SOURCES = []
+
+
+def fetch_book(gid):
+    urls = book_urls(gid)
+    # try the mirror that worked last time first
+    urls.sort(key=lambda u: 0 if any(u.startswith(g) for g in GOOD_SOURCES) else 1)
+    for u in urls:
+        raw = fetch(u, tries=1)
+        if raw and len(raw) > 2000 and b"<html" not in raw[:500].lower():
+            base = u.split("/cache/")[0] if "/cache/" in u else u.rsplit("/", 1)[0].rsplit("/" + str(gid), 1)[0]
+            base = re.sub(r"(/\d)+$", "", base)
+            if base not in GOOD_SOURCES:
+                GOOD_SOURCES.insert(0, base)
+            log(f"  {gid} <- {u}")
+            return raw
     return None
 
 
@@ -96,8 +130,7 @@ def build_books():
         return json.load(open(meta_path, encoding="utf-8"))
     meta = []
     for gid, level in BOOKS:
-        url = f"https://www.gutenberg.org/cache/epub/{gid}/pg{gid}.txt"
-        raw = fetch(url)
+        raw = fetch_book(gid)
         if not raw:
             log(f"!! failed book {gid}")
             continue
