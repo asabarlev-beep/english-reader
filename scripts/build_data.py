@@ -38,6 +38,44 @@ BOOKS = [
     (2701, 3),
 ]
 
+# short English title, Hebrew title, one-line Hebrew description, year
+INFO = {
+    46: ("A Christmas Carol", "מזמור לחג המולד", "קמצן זקן מקבל ביקור של שלוש רוחות בליל חג המולד.", 1843),
+    11: ("Alice's Adventures in Wonderland", "עליסה בארץ הפלאות", "עליסה נופלת למחילת ארנב אל עולם הזוי ומשעשע.", 1865),
+    12: ("Through the Looking-Glass", "מבעד למראה", "עליסה עוברת דרך המראה לארץ שבה הכול הוא משחק שחמט.", 1871),
+    16: ("Peter Pan", "פיטר פן", "הילד שלא רצה להתבגר לוקח את וונדי ואחיה לארץ לעולם לא.", 1911),
+    55: ("The Wonderful Wizard of Oz", "הקוסם מארץ עוץ", "סופה מעיפה את דורותי לארץ קסומה, והיא יוצאת לחפש את הקוסם.", 1900),
+    113: ("The Secret Garden", "הגן הסודי", "ילדה יתומה מגלה גן נעול ומחזירה אותו, ואת עצמה, לחיים.", 1911),
+    271: ("Black Beauty", "היופי השחור", "סיפור חייו של סוס, מסופר מפיו.", 1877),
+    236: ("The Jungle Book", "ספר הג'ונגל", "מוגלי, ילד שגדל בין זאבים, ועוד סיפורים מהג'ונגל.", 1894),
+    215: ("The Call of the Wild", "קול קדומים", "כלב בית נחטף לאלסקה של הבהלה לזהב ומגלה את הפרא שבו.", 1903),
+    35: ("The Time Machine", "מכונת הזמן", "ממציא נוסע אל העתיד הרחוק ומגלה מה עלה בגורל האנושות.", 1895),
+    74: ("The Adventures of Tom Sawyer", "הרפתקאות תום סוייר", "נער שובב ומלא דמיון בעיירה על גדות המיסיסיפי.", 1876),
+    289: ("The Wind in the Willows", "הרוח בערבי הנחל", "חפרפרת, עכברוש, גירית וקרפד בהרפתקאות לאורך הנהר.", 1908),
+    120: ("Treasure Island", "אי המטמון", "נער, מפת אוצר ופיראטים בהנהגת ג'ון סילבר.", 1883),
+    43: ("Dr Jekyll and Mr Hyde", "ד\"ר ג'קיל ומר הייד", "רופא מכובד ושיקוי שמשחרר את הצד האפל שלו.", 1886),
+    1661: ("The Adventures of Sherlock Holmes", "הרפתקאות שרלוק הולמס", "שתים עשרה תעלומות שהבלש פותר עם ד\"ר ווטסון.", 1892),
+    2852: ("The Hound of the Baskervilles", "הכלב של בני בסקרוויל", "כלב רפאים מאיים על משפחת אצולה, ושרלוק הולמס חוקר.", 1902),
+    36: ("The War of the Worlds", "מלחמת העולמות", "יצורים מהמאדים פולשים לאנגליה.", 1898),
+    5230: ("The Invisible Man", "האיש הבלתי נראה", "מדען שהפך את עצמו לבלתי נראה מאבד שליטה.", 1897),
+    910: ("White Fang", "ניב הלבן", "זאב-כלב פראי לומד לחיות בין בני אדם.", 1906),
+    45: ("Anne of Green Gables", "אן שרלי", "יתומה פטפטנית ומלאת דמיון מגיעה בטעות לחווה כפרית.", 1908),
+    514: ("Little Women", "נשים קטנות", "ארבע אחיות מתבגרות בימי מלחמת האזרחים האמריקנית.", 1868),
+    103: ("Around the World in Eighty Days", "מסביב לעולם בשמונים יום", "ג'נטלמן אנגלי מתערב שיקיף את העולם בשמונים יום.", 1872),
+    64317: ("The Great Gatsby", "גטסבי הגדול", "מיליונר מסתורי ואהבה אבודה בניו יורק של שנות העשרים.", 1925),
+    5200: ("Metamorphosis", "הגלגול", "גרגור סמסא מתעורר בוקר אחד והוא חרק ענק.", 1915),
+    844: ("The Importance of Being Earnest", "חשיבותו של להיות רציני", "קומדיה שנונה על זהויות בדויות ואהבה בחברה הגבוהה.", 1895),
+    174: ("The Picture of Dorian Gray", "תמונתו של דוריאן גריי", "הדיוקן מזדקן במקומו, והוא שוקע בחיי הוללות.", 1890),
+    1342: ("Pride and Prejudice", "גאווה ודעה קדומה", "אליזבת בנט ומר דארסי, ורושם ראשון שמטעה.", 1813),
+    84: ("Frankenstein", "פרנקנשטיין", "מדען יוצר יצור חי ונרדף על ידי מעשה ידיו.", 1818),
+    345: ("Dracula", "דרקולה", "הרוזן הערפד עובר מטרנסילבניה ללונדון.", 1897),
+    1260: ("Jane Eyre", "ג'יין אייר", "אומנת יתומה, אדון אחוזה מסתורי וסוד בעליית הגג.", 1847),
+    768: ("Wuthering Heights", "אנשי גבהים סואנים", "אהבה הרסנית בין קתרין להיתקליף על רמות יורקשייר.", 1847),
+    1400: ("Great Expectations", "תקוות גדולות", "יתום בשם פיפ מקבל הון ממיטיב אלמוני.", 1861),
+    98: ("A Tale of Two Cities", "בין שתי ערים", "לונדון ופריז בימי המהפכה הצרפתית.", 1859),
+    2701: ("Moby Dick", "מובי דיק", "רב החובל אחאב רודף אחרי הלווייתן הלבן.", 1851),
+}
+
 KAIKKI_URLS = [
     "https://kaikki.org/dictionary/English/kaikki.org-dictionary-English.jsonl",
     "https://kaikki.org/dictionary/English/kaikki.org-dictionary-English.jsonl.gz",
@@ -199,7 +237,8 @@ def build_books():
         with open(os.path.join(bdir, f"{gid}.txt"), "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
         h = hashlib.md5("\n".join(lines).encode("utf-8")).hexdigest()[:8]   # new text -> new address, so phones never keep an old copy
-        meta.append({"id": gid, "title": title or f"Book {gid}", "author": author or "",
+        short, he, desc, year = INFO.get(gid, (title or f"Book {gid}", "", "", None))
+        meta.append({"id": gid, "title": short, "he": he, "desc": desc, "year": year, "author": author or "",
                      "level": level, "words": words, "chapters": chapters, "file": f"books/{gid}.txt?v={h}"})
         log(f"book {gid}: {title} / {author} ({words} words, {chapters} chapters)")
     os.makedirs(os.path.join(CACHE, "data"), exist_ok=True)

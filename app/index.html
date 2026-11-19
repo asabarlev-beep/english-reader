@@ -31,15 +31,28 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .chips button{border:1px solid var(--line);background:var(--card);border-radius:30px;padding:7px 16px}
 .chips button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
-.book{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
-.tile{flex:none;width:54px;height:66px;border-radius:12px;color:#fff;display:flex;align-items:center;justify-content:center;font:700 26px Georgia,serif}
-.book .info{flex:1;min-width:0;direction:ltr;text-align:left}
-.book .t{font:700 17px/1.25 Georgia,serif}
-.book .a{font-size:13px;color:var(--muted)}
-.book .meta{direction:rtl;text-align:right;font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.book{position:relative;display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;margin-bottom:10px;cursor:pointer}
+.cover{flex:none;position:relative;width:62px;height:88px;border-radius:3px 9px 9px 3px;color:#fff;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(60,40,20,.25);direction:ltr}
+.cover::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:rgba(0,0,0,.22)}
+.cover b{font:700 28px/1 Georgia,serif;position:relative}
+.cover i{display:block;width:26px;height:2px;background:#e9c97a;margin-top:8px;position:relative;opacity:.9}
+.cover.sm{width:42px;height:60px}.cover.sm b{font-size:20px}.cover.sm i{width:18px;margin-top:5px}
+.book .info{flex:1;min-width:0}
+.book .he{font-weight:700;font-size:17px;line-height:1.3;margin:0;padding-left:30px}
+.book .en{direction:ltr;text-align:right;font:italic 14px/1.3 Georgia,serif;color:#5a4d47;margin-top:1px}
+.book .a{font-size:12.5px;color:var(--muted);direction:ltr;text-align:right}
+.book .desc{font-size:13.5px;line-height:1.45;color:#5a4d47;margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.book .meta{font-size:12px;color:var(--muted);margin-top:7px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.book .dl{position:absolute;top:10px;left:10px;min-width:0;width:34px;height:34px;padding:0;border-radius:50%;font-size:15px}
+.cont{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;scrollbar-width:none}
+.cont .c{flex:none;width:240px;display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;cursor:pointer}
+.cont .c .t{font-weight:700;font-size:14.5px;line-height:1.25}
+.cont .c .muted{font-size:12px}
+h3.sec{font-size:15px;margin:14px 2px 8px;color:var(--muted);font-weight:600}
 .bar{height:5px;background:#eee7dc;border-radius:5px;overflow:hidden;margin-top:6px}
 .bar i{display:block;height:100%;background:var(--gold)}
-.dl{flex:none;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:8px 10px;font-size:13px;min-width:62px}
+.dl{flex:none;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:8px 10px;font-size:13px}
 .dl.ok{color:var(--l1);border-color:#cfe2d7;background:#f1f8f4}
 .lvl{border-radius:20px;padding:1px 8px;color:#fff;font-size:11px}
 /* reader */
@@ -226,27 +239,47 @@ function renderStatus() {
 }
 function renderLevels() {
   $('#levels').innerHTML = [[0, 'הכול'], [1, 'בינוני'], [2, 'מתקדם'], [3, 'מומחה']]
-    .map(([v, t]) => `<button data-l="${v}" class="${v === level ? 'on' : ''}">${t}</button>`).join('');
+    .map(([v, t]) => `<button data-l="${v}" class="${v === level ? 'on' : ''}">${t} <span style="opacity:.6">${books.filter(b => !v || b.level === v).length}</span></button>`).join('');
   $('#levels').querySelectorAll('button').forEach(b => b.onclick = () => { level = +b.dataset.l; renderLevels(); renderBooks(); });
 }
 function bookPages(b) { return Math.max(1, Math.ceil(b.words / WORDS_PER_PAGE)); }
+const COVERS = ['#1f3b47', '#3b6e5a', '#7a3b46', '#2f5d8a', '#6b4e2e', '#4a3f6b', '#2e6b6b', '#8a5a2b', '#3d4f2f', '#5b2f4f'];
+function cover(b, sm) {
+  const w = b.title.replace(/^(The|A|An)\s+/i, '');
+  return `<div class="cover${sm ? ' sm' : ''}" style="background:linear-gradient(160deg,${COVERS[b.id % COVERS.length]},${COVERS[(b.id + 3) % COVERS.length]})"><b>${esc(w[0])}</b><i></i></div>`;
+}
+function readTime(words) { const m = words / 170; return m < 60 ? Math.round(m / 5) * 5 + ' דק׳' : 'כ-' + (Math.round(m / 30) / 2) + ' שעות'; }
+function pct(id) { const p = progress[id]; return p ? Math.max(1, Math.round(100 * (p.page + 1) / p.pages)) : 0; }
 function renderBooks() {
-  const list = books.filter(b => !level || b.level === level);
-  $('#books').innerHTML = list.map(b => {
+  const list = books.filter(b => !level || b.level === level).sort((a, b) => a.level - b.level || a.words - b.words);
+  const reading = books.filter(b => progress[b.id]).sort((a, b) => progress[b.id].at - progress[a.id].at).slice(0, 4);
+  let html = '';
+  if (reading.length && !level) {
+    html += '<h3 class="sec">📖 המשך לקרוא</h3><div class="cont">' + reading.map(b => `
+      <div class="c" data-id="${b.id}">${cover(b, 1)}<div style="flex:1;min-width:0"><div class="t">${esc(b.he || b.title)}</div>
+        <div class="muted">נקראו ${pct(b.id)}%</div><div class="bar"><i style="width:${pct(b.id)}%"></i></div></div></div>`).join('') + '</div>';
+    html += '<h3 class="sec">כל הספרים</h3>';
+  }
+  html += list.map(b => {
     const [lt, lc] = LEVELS[b.level];
-    const p = progress[b.id] ? Math.round(100 * (progress[b.id].page + 1) / progress[b.id].pages) : 0;
-    const ok = offline.has(b.id);
+    const p = pct(b.id), ok = offline.has(b.id);
     return `<div class="book" data-id="${b.id}">
-      <div class="tile" style="background:${lc}">${esc(b.title[0])}</div>
-      <div class="info"><div class="t">${esc(b.title)}</div><div class="a">${esc(b.author)}</div>
-        <div class="meta"><span class="lvl" style="background:${lc}">${lt}</span><span>${Math.round(b.words / 1000)}K מילים</span>${p ? `<span>נקראו ${p}%</span>` : ''}</div>
-        ${p ? `<div class="bar"><i style="width:${p}%"></i></div>` : ''}</div>
-      <button class="dl ${ok ? 'ok' : ''}" data-dl="${b.id}">${ok ? '✓ בטלפון' : '⬇ שמור'}</button>
+      ${cover(b)}
+      <div class="info">
+        <div class="he">${esc(b.he || b.title)}</div>
+        <div class="en">${esc(b.title)}</div>
+        <div class="a">${esc(b.author)}${b.year ? ' · ' + b.year : ''}</div>
+        ${b.desc ? `<div class="desc">${esc(b.desc)}</div>` : ''}
+        <div class="meta"><span class="lvl" style="background:${lc}">${lt}</span><span>⏱ ${readTime(b.words)}</span>${b.chapters > 1 ? `<span>${b.chapters} פרקים</span>` : ''}${p ? `<span>נקראו ${p}%</span>` : ''}</div>
+        ${p ? `<div class="bar"><i style="width:${p}%"></i></div>` : ''}
+      </div>
+      <button class="dl ${ok ? 'ok' : ''}" data-dl="${b.id}" title="${ok ? 'שמור בטלפון' : 'שמור לקריאה בלי אינטרנט'}">${ok ? '✓' : '⬇'}</button>
     </div>`;
   }).join('');
-  $('#books').querySelectorAll('.book').forEach(el => el.onclick = e => {
+  $('#books').innerHTML = html;
+  $('#books').querySelectorAll('.book, .cont .c').forEach(el => el.onclick = e => {
     const id = +el.dataset.id;
-    if (e.target.closest('.dl')) { if (!offline.has(id)) downloadBook(books.find(b => b.id === id)); return; }
+    if (e.target.closest('.dl')) { if (offline.has(id)) toast('הספר שמור בטלפון ✓'); else downloadBook(books.find(b => b.id === id)); return; }
     openBook(id);
   });
 }
