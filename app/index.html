@@ -59,7 +59,7 @@ h3.sec{font-size:15px;margin:14px 2px 8px;color:var(--muted);font-weight:600}
 #reader{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column}
 #reader.open{display:flex}
 .rtop{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;border-bottom:1px solid var(--line)}
-.rtop .ttl{flex:1;font:700 15px Georgia,serif;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtop .ttl{flex:1;min-width:0;font:700 15px Georgia,serif;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .icon{border:1px solid var(--line);background:var(--card);border-radius:10px;min-width:38px;height:38px;padding:0 8px}
 #reader{--rbg:#faf8f5;--rink:#2f2522;--rmute:#8a7d76;--rsv:#fbeec9;--rsel:#cfe0ea}
 #reader.sepia{--rbg:#f4ecd8;--rink:#4a3b2a;--rmute:#8f7c60;--rsv:#ecd9a4;--rsel:#d8cdb0}
@@ -87,8 +87,25 @@ h3.sec{font-size:15px;margin:14px 2px 8px;color:var(--muted);font-weight:600}
 #chap button{display:block;width:100%;text-align:left;direction:ltr;border:0;border-bottom:1px solid var(--line);background:none;padding:12px 10px;font:16px Georgia,serif}
 #chap button.on{font-weight:700;background:#f1ece3}
 .rbot{direction:ltr;display:flex;align-items:center;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
-.rbot input{flex:1;accent-color:var(--teal)}
-.pg{font-size:13px;color:var(--muted);min-width:76px;text-align:center}
+.rbot input{flex:1;min-width:0;width:0;accent-color:var(--teal)}
+.pg{font-size:13px;color:var(--muted);min-width:64px;text-align:center;white-space:nowrap}
+#reader{overflow:hidden}
+#reader .icon{flex:none}
+#rset{display:none;position:absolute;top:calc(56px + env(safe-area-inset-top));left:8px;right:8px;z-index:3;background:var(--card);color:var(--ink);border:1px solid var(--line);
+  border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:6px 12px}
+#rset.open{display:block}
+#rset .srow{display:flex;align-items:center;gap:8px;padding:8px 0;flex-wrap:wrap}
+#rset .srow span{flex:1;min-width:70px;font-size:14px}
+#rset .icon{color:var(--ink);background:var(--bg);border-color:var(--line)}
+#rset .th.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+#rset b{min-width:26px;text-align:center}
+@media (max-width:340px){
+  .rbot input{display:none}
+  .pg{flex:1}
+  #page{padding:16px 13px 32px;text-align:left}
+  .rtop,.rbot{gap:6px;padding-left:6px;padding-right:6px}
+  .icon{min-width:34px;height:34px;padding:0 6px}
+}
 /* sheet */
 #sheet{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top-left-radius:20px;border-top-right-radius:20px;
   box-shadow:0 -6px 24px rgba(0,0,0,.15);padding:14px 16px calc(16px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .2s}
@@ -146,9 +163,11 @@ textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:
     <button class="icon" id="rBack">→</button>
     <button class="icon" id="rToc" title="פרקים">☰</button>
     <div class="ttl" id="rTitle"></div>
-    <button class="icon" id="rTheme" title="צבע רקע">☾</button>
-    <button class="icon" id="fMinus">A−</button>
-    <button class="icon" id="fPlus">A+</button>
+    <button class="icon" id="rSet" title="תצוגה">Aa</button>
+  </div>
+  <div id="rset">
+    <div class="srow"><span>גודל אות</span><button class="icon" id="fMinus">A−</button><b id="fVal"></b><button class="icon" id="fPlus">A+</button></div>
+    <div class="srow"><span>רקע</span><button class="icon th" data-t="">בהיר</button><button class="icon th" data-t="sepia">חם</button><button class="icon th" data-t="dark">לילה</button></div>
   </div>
   <div id="page" lang="en"></div>
   <div class="rbot">
@@ -374,7 +393,7 @@ async function openBook(id) {
   });
   if (start < paras.length) pages.push([start, paras.length]);
   const pr = progress[id];
-  const page = pr ? Math.min(Math.round(pr.page * pages.length / pr.pages), pages.length - 1) : (chapters.length ? chapters[0].page : 0);
+  const page = pr && pr.page > 0 ? Math.min(Math.round(pr.page * pages.length / pr.pages), pages.length - 1) : (chapters.length ? chapters[0].page : 0);
   cur = {book: b, paras, kinds, pages, chapters, page};
   $('#rToc').style.visibility = chapters.length > 1 ? 'visible' : 'hidden';
   $('#pSlider').max = pages.length;
@@ -407,7 +426,10 @@ function renderPage() {
 function curChapter() { let c = null; for (const x of cur.chapters) { if (x.page <= cur.page) c = x; else break; } return c; }
 function setTheme(t) { theme = t; $('#reader').classList.remove('sepia', 'dark'); if (t) $('#reader').classList.add(t); store.set('theme', t);
   document.querySelector('meta[name=theme-color]').content = t === 'dark' ? '#17191c' : t === 'sepia' ? '#f4ecd8' : '#1f3b47'; }
-$('#rTheme').onclick = () => { setTheme(theme === '' ? 'sepia' : theme === 'sepia' ? 'dark' : ''); toast(theme === 'dark' ? 'מצב לילה' : theme === 'sepia' ? 'רקע חם' : 'רקע בהיר'); };
+function syncSet() { $('#fVal').textContent = fontSize; document.querySelectorAll('#rset .th').forEach(b => b.classList.toggle('on', b.dataset.t === theme)); }
+$('#rSet').onclick = e => { e.stopPropagation(); syncSet(); $('#rset').classList.toggle('open'); };
+document.querySelectorAll('#rset .th').forEach(b => b.onclick = () => { setTheme(b.dataset.t); syncSet(); });
+$('#page').addEventListener('pointerdown', () => $('#rset').classList.remove('open'));
 setTheme(theme);
 $('#rToc').onclick = () => {
   const ch = curChapter();
@@ -417,20 +439,20 @@ $('#rToc').onclick = () => {
   const on = $('#chapList .on'); if (on) on.scrollIntoView({block: 'center'});
 };
 $('#chap').onclick = e => { if (e.target.id === 'chap') $('#chap').classList.remove('open'); };
-function goPage(n) { if (!cur) return; n = Math.max(0, Math.min(cur.pages.length - 1, n)); if (n !== cur.page) { cur.page = n; renderPage(); } closeSheet(); }
+function goPage(n) { if (!cur) return; $('#rset').classList.remove('open'); n = Math.max(0, Math.min(cur.pages.length - 1, n)); if (n !== cur.page) { cur.page = n; renderPage(); } closeSheet(); }
 $('#pNext').onclick = () => goPage(cur.page + 1);
 $('#pPrev').onclick = () => goPage(cur.page - 1);
 $('#pSlider').oninput = e => { $('#pNum').textContent = `${e.target.value} / ${cur.pages.length}`; };
 $('#pSlider').onchange = e => goPage(+e.target.value - 1);
-function closeReader() { document.querySelector('meta[name=theme-color]').content = '#1f3b47'; $('#reader').classList.remove('open'); closeSheet(); cur = null; renderBooks(); }
+function closeReader() { $('#rset').classList.remove('open'); document.querySelector('meta[name=theme-color]').content = '#1f3b47'; $('#reader').classList.remove('open'); closeSheet(); cur = null; renderBooks(); }
 $('#rBack').onclick = () => { closeSheet(); history.back(); };
 addEventListener('popstate', () => {
   if (!$('#reader').classList.contains('open')) return;
   if ($('#sheet').classList.contains('open')) { closeSheet(); history.pushState({r: 1}, ''); return; }
   closeReader();
 });
-function setFont(n) { fontSize = Math.max(15, Math.min(30, n)); document.documentElement.style.setProperty('--read', fontSize + 'px'); store.set('font', fontSize); }
-$('#fPlus').onclick = () => setFont(fontSize + 2); $('#fMinus').onclick = () => setFont(fontSize - 2);
+function setFont(n) { fontSize = Math.max(13, Math.min(30, n)); document.documentElement.style.setProperty('--read', fontSize + 'px'); store.set('font', fontSize); }
+$('#fPlus').onclick = () => { setFont(fontSize + 1); syncSet(); }; $('#fMinus').onclick = () => { setFont(fontSize - 1); syncSet(); };
 setFont(fontSize);
 // swipe between pages
 let tx = null;
