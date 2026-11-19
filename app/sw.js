@@ -1,7 +1,7 @@
 // Service worker: keeps the app, the dictionary and downloaded books on the phone.
 const VERSION = '__BUILD__';
 const SHELL = 'shell-' + VERSION;
-const BOOKS = 'books-v1';            // stays the same across updates, so downloaded books survive
+const BOOKS = 'books-v2';            // stays the same across updates, so downloaded books survive
 const SHELL_FILES = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
   'data/books.json', 'data/dict.json'];
 
@@ -11,7 +11,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k.startsWith('shell-') && k !== SHELL).map(k => caches.delete(k))))
+    .then(keys => Promise.all(keys.filter(k => (k.startsWith('shell-') && k !== SHELL) || (k.startsWith('books-') && k !== BOOKS)).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 

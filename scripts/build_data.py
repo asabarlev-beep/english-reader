@@ -101,7 +101,23 @@ def fetch_book(gid):
     return None
 
 
+NUM_WORDS = ("One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|Thirteen|Fourteen|Fifteen|"
+             "Sixteen|Seventeen|Eighteen|Nineteen|Twenty|First|Second|Third|Fourth|Fifth|Sixth|Seventh|"
+             "Eighth|Ninth|Tenth|Last|the Last|the First")
+HEAD_RE = re.compile(
+    r"^(?:(?:CHAPTER|Chapter|STAVE|Stave|BOOK|Book|PART|Part|LETTER|Letter|ACT|Act|VOLUME|Volume)\s+"
+    r"(?:[IVXLCDM]+|\d+|" + NUM_WORDS + r"|" + NUM_WORDS.upper() + r")\b(?:[.:\-—]?\s*.*)?"
+    r"|(?:FIRST|SECOND|THIRD|FOURTH|FIFTH) ACT\b.*"
+    r"|[IVXLC]{1,7}(?:\.\s*[A-Z0-9 ,'’\-—.:;!?]*)?)$")
+
+
+def is_heading(t):
+    return len(t) <= 90 and bool(HEAD_RE.match(t))
+
+
 def clean_book(raw):
+    """Returns title, author and lines in the app's format:
+    '#\t<text>' chapter heading, '~\t<text>' short line (contents, poems, letters), else a paragraph."""
     text = raw.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
     head = text[:6000]
     title = re.search(r"^Title:\s*(.+)$", head, re.M)
@@ -111,39 +127,81 @@ def clean_book(raw):
     body = text[s.end() if s else 0: e.start() if e else len(text)]
     body = re.sub(r"\[Illustration[^\]]*\]", "", body, flags=re.S)
     body = body.replace("_", "")
-    paras = []
+    items = []  # (kind, text)  kind: p=paragraph, h=heading candidate, v=short line
     for block in re.split(r"\n\s*\n", body):
-        p = re.sub(r"\s+", " ", block).strip()
-        if p:
-            paras.append(p)
+        lines = [re.sub(r"\s+", " ", l).strip() for l in block.split("\n")]
+        lines = [l for l in lines if l and not re.fullmatch(r"[*\s.]+", l)]
+        if not lines:
+            continue
+        heads = sum(1 for l in lines if is_heading(l))
+        lens = [len(l) for l in lines]
+        if len(lines) >= 2 and heads >= 2:                       # table of contents
+            items += [("v", l) for l in lines]
+        elif len(lines) >= 3 and sum(lens) / len(lens) < 48 and max(lens) < 70:   # poem / list
+            items += [("v", l) for l in lines]
+        elif len(lines) == 2 and is_heading(lines[0]) and len(lines[1]) <= 70:  # "Chapter I" / "The Cyclone"
+            items.append(("h", lines[0].rstrip(".") + " — " + lines[1]))
+        else:
+            t = " ".join(lines)
+            if is_heading(t):
+                items.append(("h", t))
+            elif len(t) < 60 and not re.search(r"[.!?\"”’,;:)\]]$", t):     # titles, headings
+                items.append(("v", t))
+            else:
+                items.append(("p", t))
+    out = []
+    i = 0
+    while i < len(items):
+        kind, t = items[i]
+        if kind == "h":
+            # a real chapter has prose soon after it; otherwise it's a contents entry
+            real = any(k == "p" and len(x) > 200 for k, x in items[i + 1:i + 5])
+            if real:
+                if i + 1 < len(items):
+                    k2, t2 = items[i + 1]
+                    if k2 != "h" and len(t2) <= 70 and (t2.isupper() or not re.search(r"[.!?\"”]$", t2)):
+                        t = t.rstrip(".") + " — " + t2
+                        i += 1
+                out.append("#\t" + t)
+            else:
+                out.append("~\t" + t)
+        elif kind == "v":
+            out.append("~\t" + t)
+        else:
+            out.append(t)
+        i += 1
     return (title.group(1).strip() if title else None,
             author.group(1).strip() if author else None,
-            paras)
+            out)
 
 
 def build_books():
     bdir = os.path.join(CACHE, "books")
+    rdir = os.path.join(CACHE, "raw")
     os.makedirs(bdir, exist_ok=True)
-    meta_path = os.path.join(CACHE, "data", "books.json")
-    if os.path.exists(meta_path):
-        log("books: using cache")
-        return json.load(open(meta_path, encoding="utf-8"))
+    os.makedirs(rdir, exist_ok=True)
     meta = []
     for gid, level in BOOKS:
-        raw = fetch_book(gid)
-        if not raw:
-            log(f"!! failed book {gid}")
-            continue
-        title, author, paras = clean_book(raw)
-        words = sum(len(WORD_RE.findall(p)) for p in paras)
+        rp = os.path.join(rdir, f"{gid}.txt")
+        if os.path.exists(rp):
+            raw = open(rp, "rb").read()
+        else:
+            raw = fetch_book(gid)
+            if not raw:
+                log(f"!! failed book {gid}")
+                continue
+            open(rp, "wb").write(raw)
+            time.sleep(1)
+        title, author, lines = clean_book(raw)
+        words = sum(len(WORD_RE.findall(p)) for p in lines)
+        chapters = sum(1 for l in lines if l.startswith("#\t"))
         with open(os.path.join(bdir, f"{gid}.txt"), "w", encoding="utf-8") as f:
-            f.write("\n".join(paras))
+            f.write("\n".join(lines))
         meta.append({"id": gid, "title": title or f"Book {gid}", "author": author or "",
-                     "level": level, "words": words, "file": f"books/{gid}.txt"})
-        log(f"book {gid}: {title} / {author} ({words} words)")
-        time.sleep(1)
-    os.makedirs(os.path.dirname(meta_path), exist_ok=True)
-    json.dump(meta, open(meta_path, "w", encoding="utf-8"), ensure_ascii=False)
+                     "level": level, "words": words, "chapters": chapters, "file": f"books/{gid}.txt"})
+        log(f"book {gid}: {title} / {author} ({words} words, {chapters} chapters)")
+    os.makedirs(os.path.join(CACHE, "data"), exist_ok=True)
+    json.dump(meta, open(os.path.join(CACHE, "data", "books.json"), "w", encoding="utf-8"), ensure_ascii=False)
     return meta
 
 
@@ -151,7 +209,7 @@ def book_vocab():
     vocab = set()
     bdir = os.path.join(CACHE, "books")
     for name in os.listdir(bdir):
-        for w in WORD_RE.findall(open(os.path.join(bdir, name), encoding="utf-8").read()):
+        for w in WORD_RE.findall(open(os.path.join(bdir, name), encoding="utf-8").read().replace("#\t", " ").replace("~\t", " ")):
             w = w.lower().replace("’", "'")
             vocab.add(w)
             if w.endswith("'s"):
@@ -286,7 +344,9 @@ def assemble():
         shutil.rmtree(SITE)
     shutil.copytree(os.path.join(ROOT, "app"), SITE)
     shutil.copytree(os.path.join(CACHE, "books"), os.path.join(SITE, "books"))
-    shutil.copytree(os.path.join(CACHE, "data"), os.path.join(SITE, "data"))
+    os.makedirs(os.path.join(SITE, "data"))
+    for f in ("books.json", "dict.json"):
+        shutil.copy(os.path.join(CACHE, "data", f), os.path.join(SITE, "data", f))
     version = os.environ.get("GITHUB_SHA", str(int(time.time())))[:10]
     sw = os.path.join(SITE, "sw.js")
     s = open(sw, encoding="utf-8").read().replace("__BUILD__", version)

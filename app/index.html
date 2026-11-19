@@ -48,11 +48,31 @@ main{padding:14px 14px 90px;max-width:760px;margin:0 auto}
 .rtop{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;border-bottom:1px solid var(--line)}
 .rtop .ttl{flex:1;font:700 15px Georgia,serif;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .icon{border:1px solid var(--line);background:var(--card);border-radius:10px;min-width:38px;height:38px;padding:0 8px}
-#page{flex:1;overflow-y:auto;padding:18px 18px 30px;direction:ltr;text-align:left;font:var(--read)/1.7 Georgia,"Times New Roman",serif}
-#page p{margin:0 0 1em}
+#reader{--rbg:#faf8f5;--rink:#2f2522;--rmute:#8a7d76;--rsv:#fbeec9;--rsel:#cfe0ea}
+#reader.sepia{--rbg:#f4ecd8;--rink:#4a3b2a;--rmute:#8f7c60;--rsv:#ecd9a4;--rsel:#d8cdb0}
+#reader.dark{--rbg:#17191c;--rink:#d6d0c6;--rmute:#8b8f96;--rsv:#4a4126;--rsel:#2d4656}
+#reader{background:var(--rbg)}
+#reader .rtop,#reader .rbot{background:var(--rbg);border-color:color-mix(in srgb,var(--rmute) 30%,transparent)}
+#reader .icon{background:transparent;color:var(--rink);border-color:color-mix(in srgb,var(--rmute) 40%,transparent)}
+#reader .ttl,#reader .pg{color:var(--rink)}
+#page{flex:1;overflow-y:auto;padding:22px 20px 40px;color:var(--rink);background:var(--rbg);direction:ltr;text-align:justify;
+  hyphens:auto;-webkit-hyphens:auto;font:var(--read)/1.65 Georgia,"Noto Serif","Times New Roman",serif;-webkit-text-size-adjust:100%}
+#page .in{max-width:34em;margin:0 auto}
+#page p{margin:0;text-indent:1.4em}
+#page p.first,#page h2+p,#page .v+p{text-indent:0}
+#page p+p{margin-top:.15em}
+#page h2{font:700 1.15em/1.35 Georgia,"Noto Serif",serif;text-align:center;margin:1.2em 0 1.1em;letter-spacing:.02em;hyphens:none}
+#page .v{text-align:left;text-indent:0;margin:.1em 0;padding-left:1em;font-size:.95em;color:var(--rink);hyphens:none}
+#page .v+p,#page h2+p{margin-top:.6em}
+#page .end{text-align:center;color:var(--rmute);font-size:.8em;margin-top:2em;text-indent:0}
 #page .w{border-radius:4px}
-#page .w.sv{background:#fbeec9}
-#page .w.sel{background:#cfe0ea}
+#page .w.sv{background:var(--rsv)}
+#page .w.sel{background:var(--rsel)}
+#chap{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.35);display:none}
+#chap.open{display:block}
+#chap .panel{position:absolute;left:0;right:0;bottom:0;max-height:75vh;overflow:auto;background:var(--card);border-radius:20px 20px 0 0;padding:14px 10px calc(14px + env(safe-area-inset-bottom))}
+#chap button{display:block;width:100%;text-align:left;direction:ltr;border:0;border-bottom:1px solid var(--line);background:none;padding:12px 10px;font:16px Georgia,serif}
+#chap button.on{font-weight:700;background:#f1ece3}
 .rbot{direction:ltr;display:flex;align-items:center;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
 .rbot input{flex:1;accent-color:var(--teal)}
 .pg{font-size:13px;color:var(--muted);min-width:76px;text-align:center}
@@ -111,11 +131,13 @@ textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:
 <div id="reader">
   <div class="rtop">
     <button class="icon" id="rBack">→</button>
+    <button class="icon" id="rToc" title="פרקים">☰</button>
     <div class="ttl" id="rTitle"></div>
+    <button class="icon" id="rTheme" title="צבע רקע">☾</button>
     <button class="icon" id="fMinus">A−</button>
     <button class="icon" id="fPlus">A+</button>
   </div>
-  <div id="page"></div>
+  <div id="page" lang="en"></div>
   <div class="rbot">
     <button class="icon" id="pPrev">‹</button>
     <span class="pg" id="pNum"></span>
@@ -135,6 +157,7 @@ textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:
     <button class="btn ghost" id="sClose">סגור</button>
   </div>
 </div>
+<div id="chap"><div class="panel"><div class="muted" style="padding:0 10px 8px">פרקים</div><div id="chapList"></div></div></div>
 <div id="toast"></div>
 
 <script>
@@ -142,7 +165,7 @@ textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:
 const $ = s => document.querySelector(s);
 const LEVELS = {1: ['בינוני', 'var(--l1)'], 2: ['מתקדם', 'var(--l2)'], 3: ['מומחה', 'var(--l3)']};
 const WORDS_PER_PAGE = 380;
-const BOOK_CACHE = 'books-v1';
+const BOOK_CACHE = 'books-v2';
 const DAY = 864e5, INTERVALS = [0, 1, 3, 7, 16, 35, 90];
 
 const store = {
@@ -154,7 +177,8 @@ let saved = store.get('saved', []);
 let progress = store.get('progress', {});
 let webdict = store.get('webdict', {});
 let level = 0, offline = new Set();
-let fontSize = store.get('font', 20);
+let fontSize = store.get('font', 19);
+let theme = store.get('theme', '');
 
 function toast(t) { const el = $('#toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => el.style.display = 'none', 2200); }
 function esc(s) { return s.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c])); }
@@ -301,19 +325,31 @@ async function openBook(id) {
     if (!await c.match(b.file, {ignoreSearch: true})) await c.put(b.file, new Response(text, {headers: {'Content-Type': 'text/plain; charset=utf-8'}}));
     offline.add(id); renderStatus();
   } catch (e) {}
-  const paras = text.split('\n');
-  const pages = []; let start = 0, count = 0;
-  paras.forEach((p, i) => { count += (p.match(/\S+/g) || []).length; if (count >= WORDS_PER_PAGE) { pages.push([start, i + 1]); start = i + 1; count = 0; } });
+  const kinds = [], paras = [];
+  for (const line of text.split('\n')) {
+    if (line.startsWith('#\t')) { kinds.push('h'); paras.push(line.slice(2)); }
+    else if (line.startsWith('~\t')) { kinds.push('v'); paras.push(line.slice(2)); }
+    else if (line.trim()) { kinds.push('p'); paras.push(line); }
+  }
+  // pages of ~WORDS_PER_PAGE words; every chapter starts on a new page
+  const pages = [], chapters = []; let start = 0, count = 0;
+  paras.forEach((p, i) => {
+    if (kinds[i] === 'h' && i > start) { pages.push([start, i]); start = i; count = 0; }
+    if (kinds[i] === 'h') chapters.push({title: p, page: pages.length});
+    count += (p.match(/\S+/g) || []).length;
+    if (count >= WORDS_PER_PAGE && kinds[i + 1] !== 'h') { pages.push([start, i + 1]); start = i + 1; count = 0; }
+  });
   if (start < paras.length) pages.push([start, paras.length]);
   const pr = progress[id];
-  const page = pr ? Math.min(Math.round(pr.page * pages.length / pr.pages), pages.length - 1) : 0;
-  cur = {book: b, paras, pages, page};
+  const page = pr ? Math.min(Math.round(pr.page * pages.length / pr.pages), pages.length - 1) : (chapters.length ? chapters[0].page : 0);
+  cur = {book: b, paras, kinds, pages, chapters, page};
+  $('#rToc').style.visibility = chapters.length > 1 ? 'visible' : 'hidden';
   $('#pSlider').max = pages.length;
   renderPage();
 }
 const WORD_RE = /[A-Za-z]+(?:['’][A-Za-z]+)*/g;
 function renderPage() {
-  const {paras, pages, page} = cur; const [a, z] = pages[page];
+  const {paras, kinds, pages, page} = cur; const [a, z] = pages[page];
   const savedSet = new Set(saved.map(s => s.lemma));
   let html = '';
   for (let i = a; i < z; i++) {
@@ -325,18 +361,35 @@ function renderPage() {
       last = idx + m.length; return m;
     });
     out += esc(p.slice(last));
-    html += `<p>${out}</p>`;
+    const k = kinds[i];
+    html += k === 'h' ? `<h2>${out}</h2>` : k === 'v' ? `<p class="v">${out}</p>` : `<p${i === a ? ' class="first"' : ''}>${out}</p>`;
   }
-  $('#page').innerHTML = html; $('#page').scrollTop = 0;
+  if (page === pages.length - 1) html += '<p class="end">— סוף הספר —</p>';
+  $('#page').innerHTML = '<div class="in">' + html + '</div>'; $('#page').scrollTop = 0;
+  const ch = curChapter();
+  $('#rTitle').textContent = ch ? ch.title : cur.book.title;
   $('#pNum').textContent = `${page + 1} / ${pages.length}`; $('#pSlider').value = page + 1;
   progress[cur.book.id] = {page, pages: pages.length, at: Date.now()}; store.set('progress', progress);
 }
+function curChapter() { let c = null; for (const x of cur.chapters) { if (x.page <= cur.page) c = x; else break; } return c; }
+function setTheme(t) { theme = t; $('#reader').classList.remove('sepia', 'dark'); if (t) $('#reader').classList.add(t); store.set('theme', t);
+  document.querySelector('meta[name=theme-color]').content = t === 'dark' ? '#17191c' : t === 'sepia' ? '#f4ecd8' : '#1f3b47'; }
+$('#rTheme').onclick = () => { setTheme(theme === '' ? 'sepia' : theme === 'sepia' ? 'dark' : ''); toast(theme === 'dark' ? 'מצב לילה' : theme === 'sepia' ? 'רקע חם' : 'רקע בהיר'); };
+setTheme(theme);
+$('#rToc').onclick = () => {
+  const ch = curChapter();
+  $('#chapList').innerHTML = cur.chapters.map((c, i) => `<button data-c="${i}" class="${c === ch ? 'on' : ''}">${esc(c.title)}</button>`).join('');
+  $('#chapList').querySelectorAll('button').forEach(b => b.onclick = () => { $('#chap').classList.remove('open'); goPage(cur.chapters[+b.dataset.c].page); });
+  $('#chap').classList.add('open');
+  const on = $('#chapList .on'); if (on) on.scrollIntoView({block: 'center'});
+};
+$('#chap').onclick = e => { if (e.target.id === 'chap') $('#chap').classList.remove('open'); };
 function goPage(n) { if (!cur) return; n = Math.max(0, Math.min(cur.pages.length - 1, n)); if (n !== cur.page) { cur.page = n; renderPage(); } closeSheet(); }
 $('#pNext').onclick = () => goPage(cur.page + 1);
 $('#pPrev').onclick = () => goPage(cur.page - 1);
 $('#pSlider').oninput = e => { $('#pNum').textContent = `${e.target.value} / ${cur.pages.length}`; };
 $('#pSlider').onchange = e => goPage(+e.target.value - 1);
-function closeReader() { $('#reader').classList.remove('open'); closeSheet(); cur = null; renderBooks(); }
+function closeReader() { document.querySelector('meta[name=theme-color]').content = '#1f3b47'; $('#reader').classList.remove('open'); closeSheet(); cur = null; renderBooks(); }
 $('#rBack').onclick = () => { closeSheet(); history.back(); };
 addEventListener('popstate', () => {
   if (!$('#reader').classList.contains('open')) return;

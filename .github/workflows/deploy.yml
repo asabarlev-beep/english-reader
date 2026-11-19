@@ -28,6 +28,7 @@ jobs:
         with:
           path: cache
           key: data-${{ hashFiles('scripts/*.py') }}
+          restore-keys: data-
       - name: Download books and build dictionary
         run: python scripts/build_data.py data
       - name: Machine-translate words missing Hebrew
