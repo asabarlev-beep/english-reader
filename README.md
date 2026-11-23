@@ -8,3 +8,4 @@
 - `.github/workflows/deploy.yml` – בונה ומפרסם ל-GitHub Pages בכל עדכון
 
 להוספת ספר: הוסף את המספר שלו בגוטנברג לרשימה `BOOKS` בקובץ `scripts/build_data.py`.
+השנה (year) קובעת אם הספר מופיע גם בסינון "מודרני" (1920 ואילך).

@@ -234,9 +234,12 @@ let saved = store.get('saved', []);
 let progress = store.get('progress', {});
 let webdict = store.get('webdict', {});
 let level = 0, offline = new Set();
-const GENRES = [['', 'הכול'], ['mystery', '🔍 מתח ובלש'], ['adventure', '🧭 הרפתקאות'], ['classic', '📜 קלאסיקה'], ['kids', '🧒 ילדים ונוער']];
+const GENRES = [['', 'הכול'], ['modern', '✨ מודרני'], ['mystery', '🔍 מתח ובלש'], ['adventure', '🧭 הרפתקאות'], ['classic', '📜 קלאסיקה'], ['kids', '🧒 ילדים ונוער']];
 let genre = store.get('genre', '');
-const inGenre = b => !genre || b.genre === genre;
+// 'modern' is not a real genre: it shows every book from 1920 on, whatever its genre
+const MODERN_FROM = 1920;
+const matchGenre = (b, g) => !g || (g === 'modern' ? (b.year || 0) >= MODERN_FROM : b.genre === g);
+const inGenre = b => matchGenre(b, genre);
 // default size fits the real width (phones with enlarged text get a smaller default)
 const autoFont = innerWidth < 300 ? 15 : innerWidth < 360 ? 16 : 18;
 let fontSize = store.get('font2', autoFont);
@@ -293,7 +296,7 @@ function renderStatus() {
 function renderLevels() {
   const chip = (attr, v, t, on, n) => `<button ${attr}="${v}" class="${on ? 'on' : ''}">${t} <span style="opacity:.6">${n}</span></button>`;
   $('#levels').innerHTML =
-    '<div class="chips" style="margin:0 0 8px">' + GENRES.map(([v, t]) => chip('data-g', v, t, v === genre, books.filter(b => !v || b.genre === v).length)).join('') + '</div>' +
+    '<div class="chips" style="margin:0 0 8px">' + GENRES.map(([v, t]) => chip('data-g', v, t, v === genre, books.filter(b => matchGenre(b, v)).length)).join('') + '</div>' +
     '<div class="chips" style="margin:0">' + [[0, 'כל הרמות'], [1, 'בינוני'], [2, 'מתקדם'], [3, 'מומחה']]
       .map(([v, t]) => chip('data-l', v, t, v === level, books.filter(b => inGenre(b) && (!v || b.level === v)).length)).join('') + '</div>';
   $('#levels').querySelectorAll('[data-g]').forEach(b => b.onclick = () => { genre = b.dataset.g; store.set('genre', genre); renderLevels(); renderBooks(); });
